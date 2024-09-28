@@ -94,8 +94,6 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
         instanceTag = itemTag
     }
     constructor = Structs.TypeMap[instanceTag]
-//     selectedFields := getSelectedFields(reference)
-
 
     switch method {
         case "json","yaml":
