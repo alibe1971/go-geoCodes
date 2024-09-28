@@ -94,6 +94,9 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
         instanceTag = itemTag
     }
     constructor = Structs.TypeMap[instanceTag]
+//     selectedFields := getSelectedFields(reference)
+
+
     switch method {
         case "json","yaml":
             switch dataType {
@@ -228,41 +231,51 @@ func validateXMLAgainstXSD(xmlData []byte, xsdSchema []byte) {
 //     [todo]  https://chatgpt.com/c/66e16d6d-1ec8-8004-aacb-878ba7bd24fc
 }
 
+func getSelectedFields(reference Structs.GeoCodeReference) []string {
+    if len(geocodesMap[reference].SetEnquiries.Select) == 0 {
+        return Structs.SettingsMap[geocodesMap[reference].SetType].(Structs.SettingsType).Public
+    } else {
+        return geocodesMap[reference].SetEnquiries.Select
+    }
+}
 
+
+var processMap = map[string]func(interface{}, []string) map[string]interface{}{
+    "countries": func(item interface{}, selectedFields []string) map[string]interface{} {
+        return filterFields(item.(Structs.Country), selectedFields)
+    },
+    "geoSets": func(item interface{}, selectedFields []string) map[string]interface{} {
+        return filterFields(item.(Structs.GeoSet), selectedFields)
+    },
+    "currencies": func(item interface{}, selectedFields []string) map[string]interface{} {
+        return filterFields(item.(Structs.Currency), selectedFields)
+    },
+}
 
 func getGeoCodeData(reference Structs.GeoCodeReference, onlyFirst bool) Structs.GeoCodeResult {
     var result interface{}
     orderBy := geocodesMap[reference].SetEnquiries.OrderBy.Property
     orderDir := geocodesMap[reference].SetEnquiries.OrderBy.OrderType
-    settings := Structs.SettingsMap[geocodesMap[reference].SetType].(Structs.SettingsType)
-    Object := geocodesMap[reference].SetObject
+    object := geocodesMap[reference].SetObject
+    selectedFields := getSelectedFields(reference)
 
-    var selectedFields []string
-    if len(geocodesMap[reference].SetEnquiries.Select) == 0 {
-        selectedFields = settings.Public
-    } else {
-        selectedFields = geocodesMap[reference].SetEnquiries.Select
-    }
-
-    // Determinare il tipo di risultato
     if geocodesMap[reference].SetEnquiries.Index != nil {
         result = make(map[string]map[string]interface{})
     } else {
         result = make([]map[string]interface{}, 0)
     }
 
-    // Mappa per le funzioni di elaborazione
-    processMap := map[string]func(interface{}) map[string]interface{}{
-        "countries": func(item interface{}) map[string]interface{} {
-            return filterFields(item.(Structs.Country), selectedFields)
-        },
-        "geoSets": func(item interface{}) map[string]interface{} {
-            return filterFields(item.(Structs.GeoSet), selectedFields)
-        },
-        "currencies": func(item interface{}) map[string]interface{} {
-            return filterFields(item.(Structs.Currency), selectedFields)
-        },
-    }
+//     processMap := map[string]func(interface{}) map[string]interface{}{
+//         "countries": func(item interface{}) map[string]interface{} {
+//             return filterFields(item.(Structs.Country), selectedFields)
+//         },
+//         "geoSets": func(item interface{}) map[string]interface{} {
+//             return filterFields(item.(Structs.GeoSet), selectedFields)
+//         },
+//         "currencies": func(item interface{}) map[string]interface{} {
+//             return filterFields(item.(Structs.Currency), selectedFields)
+//         },
+//     }
 
     processItem, _ := processMap[geocodesMap[reference].SetType]
 
@@ -275,20 +288,17 @@ func getGeoCodeData(reference Structs.GeoCodeReference, onlyFirst bool) Structs.
 
     kIn, kOut := 0, 0
 
-    // Creare una slice temporanea per ordinare
     items := make([]interface{}, 0)
-    for _, value := range Object {
+    for _, value := range object {
         items = append(items, value.(reflect.Value).Interface())
     }
 
     collator := collate.New(language.Make(getData("config").(*Structs.Config).Settings.Languages.InPackage[currentLanguage]))
 
-    // Ordinare gli elementi in base al campo specificato
     sort.Slice(items, func(i, j int) bool {
         return compareItems(items[i], items[j], orderBy, orderDir, collator)
     })
 
-    // Iterare sulla slice ordinata
     for _, item := range items {
         if kIn < offsetNum {
             kIn++
@@ -299,7 +309,7 @@ func getGeoCodeData(reference Structs.GeoCodeReference, onlyFirst bool) Structs.
             return limitNum
         }
 
-        parsedItem := processItem(item)
+        parsedItem := processItem(item, selectedFields)
 
         if onlyFirst {
             return parsedItem
