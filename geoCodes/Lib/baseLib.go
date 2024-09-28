@@ -15,6 +15,7 @@ import(
     "bytes"
     "strings"
     "strconv"
+    "unicode"
     Structs "github.com/alibe1971/go-geoCodes/geoCodes/Structs"
 )
 
@@ -24,6 +25,26 @@ func strToLower(str string) string {
 
 func strToUpper(str string) string {
     return strings.ToUpper(str)
+}
+
+
+func ucfirst(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	runes := []rune(s)
+	runes[0] = unicode.ToUpper(runes[0])
+	return string(runes)
+}
+
+
+func lcfirst(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	runes := []rune(s)
+	runes[0] = unicode.ToLower(runes[0])
+	return string(runes)
 }
 
 func toString(value interface{}) string {
