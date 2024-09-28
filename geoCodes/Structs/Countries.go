@@ -79,6 +79,7 @@ var CountrySettings = SettingsType {
         "TimeZones",
         "Languages",
         "Locales",
+        "OtherAppsIds",
         "OtherAppsIds.GeoNamesOrg",
     },
 }
