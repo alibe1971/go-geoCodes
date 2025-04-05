@@ -54,10 +54,10 @@ func TestElibeCountries(t *testing.T) {
 //     fmt.Printf("Conteggio: %v", country0)
 
 // TEST Get().ToJson()
-    country0 := geoCodes.Countries().First().ToJson()
+//     country0 := geoCodes.Countries().First().ToJson()
 //     country0 := geoCodes.Countries().Get().ToJson()
 //     country0 := geoCodes.Countries().WithIndex("Alpha2").Get().ToJson()
-    fmt.Printf("%v", country0)
+//     fmt.Printf("%v", country0)
 
 // TEST Get().ToYaml()
 //     country0 := geoCodes.Countries().First().ToYaml()
@@ -70,10 +70,10 @@ func TestElibeCountries(t *testing.T) {
 //     fmt.Printf("%v", country0)
 
 // TEST Get().ToXmlAndValidate()
-//     country0 := geoCodes.GeoSets().First().ToXml()
-//     country0 := geoCodes.GeoSets().Get().ToXml()
-//     country0 := geoCodes.GeoSets().WithIndex("Name").Get().ToXml()
-//     fmt.Printf("%v\n", country0)
+    country0 := geoCodes.Countries().First().ToXml()
+//     country0 := geoCodes.Countries().Get().ToXml()
+//     country0 := geoCodes.Countries().WithIndex("Name").Get().ToXml()
+    fmt.Printf("%v\n", country0)
 
 // TEST Get().ToYaml()
 //     country0 := geoCodes.Countries().Get().ToYaml()

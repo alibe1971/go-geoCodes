@@ -104,7 +104,7 @@ type LangStructXml struct {
 }
 
 type MottosXml struct {
-	Official []LangStructXml  `json:"official" yaml:"official" xml:"official>motto"`
+	Official []LangStructXml  `xml:"official>motto"`
 }
 
 type FlagsXml struct {

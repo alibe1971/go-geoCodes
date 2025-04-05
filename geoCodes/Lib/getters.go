@@ -213,6 +213,7 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
             toStringData, err = yaml.Marshal(outerMap)
         case "xml", "xmlValidate":
             toStringData, err = xml.MarshalIndent(data, "", "  ")
+            toStringData = []byte(strings.ReplaceAll(string(toStringData), "&#39;", "'"))
             if method == "xmlValidate" {
                 xsd, err = getXsd(instanceTag)
                 validateXMLAgainstXSD(toStringData, xsd)
