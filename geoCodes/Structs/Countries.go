@@ -93,6 +93,8 @@ type CountryXml struct {
     XMLName      xml.Name        `xml:"country"`
     Index        string          `xml:"index,attr,omitempty"`
     Country
+    Dependency   string          `xml:"dependency"`
+    CcTld        string          `xml:"ccTld"`
     OfficialName []LangStructXml `xml:"officialName>name"`
     Mottos       MottosXml       `xml:"mottos"`
     Flags        FlagsXml        `xml:"flags"`
@@ -122,8 +124,25 @@ func CountryToXML(country Country) CountryXml {
         mottos = append(mottos, LangStructXml{Lang: key, Value: value})
     }
 
+    var dep string
+    if country.Dependency != nil {
+        dep = *country.Dependency
+    } else {
+        dep = ""
+    }
+
+    var tld string
+    if country.CcTld != nil {
+        tld = *country.CcTld
+    } else {
+        tld = ""
+    }
+
+
     return CountryXml{
         Country:      country,
+        Dependency:   dep,
+        CcTld:        tld,
         OfficialName: officialName,
         Mottos:       MottosXml{Official: mottos},
         Flags:        FlagsXml{Svg: CDATA{Value: country.Flags.Svg}},

@@ -70,9 +70,9 @@ func TestElibeCountries(t *testing.T) {
 //     fmt.Printf("%v", country0)
 
 // TEST Get().ToXmlAndValidate()
-    country0 := geoCodes.Countries().First().ToXml()
+//     country0 := geoCodes.Countries().First().ToXml()
 //     country0 := geoCodes.Countries().Get().ToXml()
-//     country0 := geoCodes.Countries().WithIndex("Name").Get().ToXml()
+    country0 := geoCodes.Countries().WithIndex("Name").Get().ToXml()
     fmt.Printf("%v\n", country0)
 
 // TEST Get().ToYaml()
