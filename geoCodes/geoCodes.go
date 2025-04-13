@@ -86,6 +86,10 @@ func (gc *geoCode) First() *geoCodeResult {
     }
 }
 
+func (gc *geoCode) Length() int {
+    return gc.Count()
+}
+
 func (gc *geoCode) Count() int {
     data := lib.OutPutObject(gc.Reference, "get")
     switch v := data.(type) {
@@ -107,6 +111,12 @@ func (gc *geoCode) GetXsdSingle() string {
 }
 
 
+func (gcr *geoCodeResult) AsObj() (map[string]interface{}) {
+    if data, ok := gcr.Data.(map[string]interface{}); ok {
+        return data
+    }
+    return nil
+}
 func (gcr *geoCodeResult) AsMap() (map[string]map[string]interface{}) {
     if data, ok := gcr.Data.(map[string]map[string]interface{}); ok {
         return data
@@ -127,10 +137,6 @@ func (gcr *geoCodeResult) ToJson() (string) {
 
 func (gcr *geoCodeResult) ToXml() (string) {
     return lib.OutPutString(gcr.Reference, gcr.Data, "xml")
-}
-
-func (gcr *geoCodeResult) ToXmlAndValidate() (string) {
-    return lib.OutPutString(gcr.Reference, gcr.Data, "xmlValidate")
 }
 
 func (gcr *geoCodeResult) ToYaml() (string) {

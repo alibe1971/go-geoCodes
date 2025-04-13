@@ -61,6 +61,14 @@ var TypeMap = map[string]func() interface{}{
     "geoSet":       func() interface{} { return &GeoSet{} },
 }
 
+var TypeMapBuildXml = map[string]map[string]XmlFieldMapping{
+    "country": MapBuildXmlCountry,
+    "geoSet":  MapBuildXmlGeoSet,
+    "currency":  MapBuildXmlCurrency,
+}
+
+
+
 var TypeMapXml = map[string]func() interface{}{
     "countries":    func() interface{} { return &CountriesXml{} },
     "currencies":   func() interface{} { return &CurrenciesXml{} },
@@ -85,6 +93,20 @@ var ConverterMapXml = map[string]func(interface{}) interface{}{
 type CDATA struct {
 	Value string `xml:",cdata"`
 }
+
+
+type XmlFieldMapping struct {
+    Field     string
+    IsList    bool
+    CDATA     bool
+    AsAttributes bool
+    AsInt       bool
+    AttrName  string
+    TagName   string
+    Children  map[string]XmlFieldMapping
+}
+
+
 
 
 

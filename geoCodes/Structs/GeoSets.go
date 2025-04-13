@@ -30,6 +30,36 @@ var GeoSetSettings = SettingsType {
     },
 }
 
+var MapBuildXmlGeoSet = map[string]XmlFieldMapping{
+    "internalCode": {
+        TagName: "internalCode",
+    },
+    "unM49": {
+        TagName: "unM49",
+    },
+    "name": {
+        TagName: "name",
+    },
+    "tags": {
+        TagName: "tags",
+        Children: map[string]XmlFieldMapping{
+            "tag": {
+                TagName: "tag",
+            },
+        },
+    },
+    "countryCodes": {
+        TagName: "countryCodes",
+        Children: map[string]XmlFieldMapping{
+            "cc": {
+                TagName: "cc",
+            },
+        },
+    },
+}
+
+
+/******/
 type GeoSetsXml struct {
     XMLName  xml.Name     `xml:"geoSets"`
     GeoSets []GeoSetXml    `xml:"geoSet"`

@@ -84,6 +84,176 @@ var CountrySettings = SettingsType {
     },
 }
 
+var MapBuildXmlCountry = map[string]XmlFieldMapping{
+    "alpha2": {
+        TagName: "alpha2",
+    },
+    "alpha3": {
+        TagName: "alpha3",
+    },
+    "unM49": {
+        TagName: "unM49",
+    },
+    "name": {
+        TagName: "name",
+    },
+    "fullName": {
+        TagName: "fullName",
+    },
+    "officialName": {
+        TagName: "officialName",
+        AsAttributes: true,
+        Children: map[string]XmlFieldMapping{
+            "name": {
+                TagName: "name",
+                AttrName: "lang", // L'attributo "lang"
+            },
+        },
+    },
+    "flags": {
+        TagName: "flags",
+        Children: map[string]XmlFieldMapping{
+            "svg": {
+                TagName: "svg",
+                CDATA:   true,
+            },
+        },
+    },
+    "dependency": {
+        TagName: "dependency",
+    },
+    "mottos": {
+        TagName: "mottos",
+        Children: map[string]XmlFieldMapping{
+            "official": {
+                TagName: "official",
+                Children: map[string]XmlFieldMapping{
+                    "motto": {
+                        TagName: "motto",
+                        AttrName: "lang", // L'attributo "lang" per il motto
+                    },
+                },
+            },
+        },
+    },
+    "currencies": {
+        TagName: "currencies",
+        Children: map[string]XmlFieldMapping{
+            "legalTenders": {
+                TagName: "legalTenders",
+                Children: map[string]XmlFieldMapping{
+                    "currency": {
+                        TagName: "currency",
+                        Children: map[string]XmlFieldMapping{
+                            "isoAlpha": {
+                                TagName: "isoAlpha",
+                            },
+                            "isoNumber": {
+                                TagName: "isoNumber",
+                            },
+                            "name": {
+                                TagName: "name",
+                            },
+                            "symbol": {
+                                TagName: "symbol",
+                            },
+                            "decimal": {
+                                TagName: "decimal",
+                            },
+                        },
+                    },
+                },
+            },
+            "widelyAccepted": {
+                TagName: "widelyAccepted",
+                Children: map[string]XmlFieldMapping{
+                    "currency": {
+                        TagName: "currency",
+                        Children: map[string]XmlFieldMapping{
+                            "isoAlpha": {
+                                TagName: "isoAlpha",
+                            },
+                            "isoNumber": {
+                                TagName: "isoNumber",
+                            },
+                            "name": {
+                                TagName: "name",
+                            },
+                            "symbol": {
+                                TagName: "symbol",
+                            },
+                            "decimal": {
+                                TagName: "decimal",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
+    "dialCodes": {
+        TagName: "dialCodes",
+        Children: map[string]XmlFieldMapping{
+            "main": {
+                TagName: "main",
+                Children: map[string]XmlFieldMapping{
+                    "dial": {
+                        TagName: "dial",
+                    },
+                },
+            },
+            "exceptions": {
+                TagName: "exceptions",
+                Children: map[string]XmlFieldMapping{
+                    "dial": {
+                        TagName: "dial",
+                    },
+                },
+            },
+        },
+    },
+    "ccTld": {
+        TagName: "ccTld",
+    },
+    "timeZones": {
+        TagName: "timeZones",
+        Children: map[string]XmlFieldMapping{
+            "tz": {
+                TagName: "tz",
+            },
+        },
+    },
+    "locales": {
+        TagName: "locales",
+        Children: map[string]XmlFieldMapping{
+            "locale": {
+                TagName: "locale",
+            },
+        },
+    },
+    "demonyms": {
+        TagName: "demonyms",
+        Children: map[string]XmlFieldMapping{
+            "demonym": {
+                TagName: "demonym",
+            },
+        },
+    },
+    "otherAppsIds": {
+        TagName: "otherAppsIds",
+        Children: map[string]XmlFieldMapping{
+            "geoNamesOrg": {
+                TagName: "geoNamesOrg",
+                AsInt: true,
+            },
+        },
+    },
+}
+
+
+
+/******/
+
 type CountriesXml struct {
     XMLName  xml.Name    `xml:"countries"`
     Countries []CountryXml `xml:"country"`
@@ -148,9 +318,4 @@ func CountryToXML(country Country) CountryXml {
         Flags:        FlagsXml{Svg: CDATA{Value: country.Flags.Svg}},
     }
 }
-
-
-
-
-
 

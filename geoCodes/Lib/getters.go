@@ -75,130 +75,39 @@ func getXsd(name string) ([]byte, error) {
     return xsd, nil
 }
 
-
 func getDataOnString(reference Structs.GeoCodeReference, data interface{}, method string) (string, error) {
+
     var toStringData []byte
-    var xsd []byte
     var err error
     var rootTag string = geocodesMap[reference].SetType
     var itemTag string = Structs.SingleItemName[rootTag]
-    var constructor func() interface{}
-
     dataType := "nil"
     if data != nil {
         dataType = reflect.TypeOf(data).String()
     }
 
     instanceTag := rootTag
-    if dataType == "map[string]interface {}" || dataType == "map[string]map[string]interface {}" {
-        instanceTag = itemTag
-    }
-    constructor = Structs.TypeMap[instanceTag]
 
-    switch method {
-        case "json","yaml":
-            switch dataType {
-                case "map[string]interface {}", "[]map[string]interface {}":
-                    instance := constructor()
-                    tmp, _ := json.Marshal(data)
-                    if err := json.Unmarshal(tmp, instance); err != nil {
-                        return "", err
-                    }
-                    data = instance
-                case "map[string]map[string]interface {}":
-                    dataMap := data.(map[string]map[string]interface{})
-                    var result = make(map[string]interface{})
-                    for key, value := range dataMap {
-                        instance := constructor()
-                        tmp, _ := json.Marshal(value)
-                        if err := json.Unmarshal(tmp, instance); err != nil {
-                            return "", err
-                        }
-                        result[key] = instance
-                    }
-                    data = result
+    switch dataType {
+        case "map[string]interface {}":
+            data = LowerCamelCaseKeys(data)
+            instanceTag = itemTag
+        case "map[string]map[string]interface {}":
+            dataMap := data.(map[string]map[string]interface{})
+            var result = make(map[string]interface{})
+            for key, value := range dataMap {
+                result[key] = LowerCamelCaseKeys(value)
             }
-        case "xml", "xmlValidate":
-            switch dataType {
-                case "map[string]interface {}":
-                    instance := constructor()
-                    tmp, _ := json.Marshal(data)
-                    if err := json.Unmarshal(tmp, instance); err != nil {
-                        return "", err
-                    }
-                    converter, _ := Structs.ConverterMapXml[instanceTag]
-                    data = converter(instance)
-                case "[]map[string]interface {}":
-                    constructor := Structs.TypeMap[itemTag]
-                    dataMap := data.([]map[string]interface{})
-                    var result interface{}
-                    switch rootTag {
-                        case "countries":
-                            result = Structs.TypeMapXml[rootTag]().(*Structs.CountriesXml)
-                        case "currencies":
-                            result = Structs.TypeMapXml[rootTag]().(*Structs.CurrenciesXml)
-                        case "geoSets":
-                            result = Structs.TypeMapXml[rootTag]().(*Structs.GeoSetsXml)
-                    }
-                    for _, value := range dataMap {
-                        instance := constructor()
-                        tmp, _ := json.Marshal(value)
-                        json.Unmarshal(tmp, instance)
-                        converter := Structs.ConverterMapXml[itemTag]
-                        switch rootTag {
-                            case "countries":
-                                countriesResult := result.(*Structs.CountriesXml)
-                                countriesResult.Countries = append(countriesResult.Countries, converter(instance).(Structs.CountryXml))
-                            case "currencies":
-                                currenciesResult := result.(*Structs.CurrenciesXml)
-                                currenciesResult.Currencies = append(currenciesResult.Currencies, converter(instance).(Structs.CurrencyXml))
-                            case "geoSets":
-                                geoSetsResult := result.(*Structs.GeoSetsXml)
-                                geoSetsResult.GeoSets = append(geoSetsResult.GeoSets, converter(instance).(Structs.GeoSetXml))
-                        }
-                    }
-                    data = result
-
-                case "map[string]map[string]interface {}":
-                    constructor := Structs.TypeMap[itemTag]
-                    dataMap := data.(map[string]map[string]interface{})
-                    var result interface{}
-
-                    switch rootTag {
-                        case "countries":
-                            result = Structs.TypeMapXml[rootTag]().(*Structs.CountriesXml)
-                        case "currencies":
-                            result = Structs.TypeMapXml[rootTag]().(*Structs.CurrenciesXml)
-                        case "geoSets":
-                            result = Structs.TypeMapXml[rootTag]().(*Structs.GeoSetsXml)
-                    }
-                    for key, value := range dataMap {
-                        instance := constructor()
-                        tmp, _ := json.Marshal(value)
-                        json.Unmarshal(tmp, instance)
-                        converter := Structs.ConverterMapXml[itemTag]
-                        switch rootTag {
-                            case "countries":
-                                countryInstance := converter(instance).(Structs.CountryXml)
-                                countryInstance.Index = key
-                                countriesResult := result.(*Structs.CountriesXml)
-                                countriesResult.Countries = append(countriesResult.Countries, countryInstance)
-                            case "currencies":
-                                currencyInstance := converter(instance).(Structs.CurrencyXml)
-                                currencyInstance.Index = key
-                                currenciesResult := result.(*Structs.CurrenciesXml)
-                                currenciesResult.Currencies = append(currenciesResult.Currencies, currencyInstance)
-                            case "geoSets":
-                                geoSetInstance := converter(instance).(Structs.GeoSetXml)
-                                geoSetInstance.Index = key
-                                geoSetsResult := result.(*Structs.GeoSetsXml)
-                                geoSetsResult.GeoSets = append(geoSetsResult.GeoSets, geoSetInstance)
-                        }
-                    }
-                    data = result
-
+            data = result
+        case "[]map[string]interface {}":
+            dataSlice := data.([]map[string]interface{})
+            var result []interface{}
+            for _, value := range dataSlice {
+                result = append(result, LowerCamelCaseKeys(value))
             }
+            data = result
     }
+
     switch method {
         case "xsd":
             toStringData, err = getXsd(rootTag)
@@ -211,14 +120,31 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
                 instanceTag: data,
             }
             toStringData, err = yaml.Marshal(outerMap)
-        case "xml", "xmlValidate":
-            toStringData, err = xml.MarshalIndent(data, "", "  ")
-            toStringData = []byte(strings.ReplaceAll(string(toStringData), "&#39;", "'"))
-            if method == "xmlValidate" {
-                xsd, err = getXsd(instanceTag)
-                validateXMLAgainstXSD(toStringData, xsd)
+        case "xml":
+            jsonBytes, err := json.Marshal(data)
+            if err != nil {
+                return "", err
             }
+            var unstructured interface{}
+            err = json.Unmarshal(jsonBytes, &unstructured)
+            if err != nil {
+                return "", err
+            }
+            var xmlString string
+            var constructor map[string]Structs.XmlFieldMapping
+
+//             fmt.Println("rootTag:", rootTag)
+//             fmt.Println("itemTag:", itemTag)
+
+            constructor = Structs.TypeMapBuildXml[instanceTag]
+            xmlString, err = mapToXML(unstructured, itemTag, constructor, 0)
+//             xmlString, err = mapToXML(unstructured, itemTag, Structs.MapBuildXmlCountry, 0)
+            if err != nil {
+                fmt.Println("ERRORE XML:", err)
+            }
+            toStringData = []byte(xmlString)
     }
+
 
     if err != nil {
         return "", err
@@ -226,8 +152,16 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
     return string(toStringData), nil
 }
 
+
+
+
+
+
+
+
 func validateXMLAgainstXSD(xmlData []byte, xsdSchema []byte) {
 //     [todo]  https://chatgpt.com/c/66e16d6d-1ec8-8004-aacb-878ba7bd24fc
+// DA RIMUOVERE
 }
 
 func getSelectedFields(reference Structs.GeoCodeReference) []string {
@@ -263,18 +197,6 @@ func getGeoCodeData(reference Structs.GeoCodeReference, onlyFirst bool) Structs.
     } else {
         result = make([]map[string]interface{}, 0)
     }
-
-//     processMap := map[string]func(interface{}) map[string]interface{}{
-//         "countries": func(item interface{}) map[string]interface{} {
-//             return filterFields(item.(Structs.Country), selectedFields)
-//         },
-//         "geoSets": func(item interface{}) map[string]interface{} {
-//             return filterFields(item.(Structs.GeoSet), selectedFields)
-//         },
-//         "currencies": func(item interface{}) map[string]interface{} {
-//             return filterFields(item.(Structs.Currency), selectedFields)
-//         },
-//     }
 
     processItem, _ := processMap[geocodesMap[reference].SetType]
 
@@ -367,3 +289,4 @@ func encodeToXML(data interface{}) (string, error) {
 
 
 
+/******/

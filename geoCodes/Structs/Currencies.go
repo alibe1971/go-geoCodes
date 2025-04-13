@@ -30,6 +30,28 @@ var CurrencySettings = SettingsType {
     },
 }
 
+var MapBuildXmlCurrency = map[string]XmlFieldMapping{
+    "isoAlpha": {
+        TagName: "isoAlpha",
+    },
+    "isoNumber": {
+        TagName: "isoNumber",
+    },
+    "name": {
+        TagName: "name",
+    },
+    "symbol": {
+        TagName: "symbol",
+    },
+    "decimal": {
+        TagName: "decimal",
+        AsInt: true,
+    },
+}
+
+
+/*******/
+
 type CurrenciesXml struct {
     XMLName  xml.Name           `xml:"currencies"`
     Currencies []CurrencyXml    `xml:"currency"`
