@@ -65,7 +65,7 @@ func TestCountries(t *testing.T) {
 
             t.Run("CheckTheCountriesAsMapListOfElements", func(t *testing.T) {
                 t.Run("CheckTheCountriesListWithStructureDeclaration", func(t *testing.T) {
-                    country := geoCodes.Countries().WithIndex("Alpha2").Get().
+                    country := geoCodes.Countries().WithIndex(primaryKey).Get().
                         Data.(map[string]map[string]interface{})["IT"]
                     assert.Equal(
                         t,
@@ -79,7 +79,7 @@ func TestCountries(t *testing.T) {
                 })
 
                 t.Run("TestTheCountriesListAsMapWithDirectCommand:AsMap()", func(t *testing.T) {
-                    country := geoCodes.Countries().WithIndex("Alpha2").Get().AsMap()["IT"]
+                    country := geoCodes.Countries().WithIndex(primaryKey).Get().AsMap()["IT"]
                     assert.Equal(
                         t,
                         country[primaryKey],
@@ -122,7 +122,7 @@ func TestCountries(t *testing.T) {
             })
 
             t.Run("TestThatThe:WithIndex():HasNotInfluenceOnDirectCommand:AsObj()", func(t *testing.T) {
-                country := geoCodes.Countries().WithIndex("Alpha3").First().AsObj()
+                country := geoCodes.Countries().WithIndex(primaryKey).First().AsObj()
                 assert.Equal(
                     t,
                     country[primaryKey],
@@ -147,7 +147,7 @@ func TestCountries(t *testing.T) {
                 })
             })
             t.Run("TestTheWrongUseInPresenceOfMapList", func(t *testing.T) {
-                country := geoCodes.Countries().WithIndex("Alpha2").Get()
+                country := geoCodes.Countries().WithIndex(primaryKey).Get()
                 t.Run("WrongUseOf:AsSlice()", func(t *testing.T) {
                     assert.Empty(t, country.AsSlice(), "The slice should be empty")
                 })
@@ -175,7 +175,7 @@ func TestCountries(t *testing.T) {
                 )
                 assert.Nil(
                     t,
-                    TestLib.ValidateJSON([]byte(geoCodes.Countries().WithIndex("Alpha2").Get().ToJson())),
+                    TestLib.ValidateJSON([]byte(geoCodes.Countries().WithIndex(primaryKey).Get().ToJson())),
                     "Not a valid Json",
                 )
                 assert.Nil(
@@ -192,7 +192,7 @@ func TestCountries(t *testing.T) {
                 )
                 assert.Nil(
                     t,
-                    TestLib.ValidateYAML([]byte(geoCodes.Countries().WithIndex("Alpha2").Get().ToYaml())),
+                    TestLib.ValidateYAML([]byte(geoCodes.Countries().WithIndex(primaryKey).Get().ToYaml())),
                     "Not a valid Yaml",
                 )
                 assert.Nil(
@@ -209,7 +209,7 @@ func TestCountries(t *testing.T) {
                 )
                 assert.Nil(
                     t,
-                    TestLib.ValidateXML([]byte(geoCodes.Countries().WithIndex("Alpha2").Get().ToXml())),
+                    TestLib.ValidateXML([]byte(geoCodes.Countries().WithIndex(primaryKey).Get().ToXml())),
                     "Not a valid Xml",
                 )
                 assert.Nil(
@@ -242,14 +242,14 @@ func TestCountries(t *testing.T) {
             geoCodes.UseLanguage("en")
             assert.Equal(
                 t,
-                geoCodes.Countries().WithIndex("Alpha2").Get().AsMap()["IE"]["FullName"],
+                geoCodes.Countries().WithIndex(primaryKey).Get().AsMap()["IE"]["FullName"],
                 "Republic of Ireland",
                 "The chosen language does not seem to work",
             )
             geoCodes.UseLanguage("it")
             assert.Equal(
                 t,
-                geoCodes.Countries().WithIndex("Alpha2").Get().AsMap()["IE"]["FullName"],
+                geoCodes.Countries().WithIndex(primaryKey).Get().AsMap()["IE"]["FullName"],
                 "Repubblica d'Irlanda",
                 "The chosen language does not seem to work",
             )
@@ -260,7 +260,7 @@ func TestCountries(t *testing.T) {
 
 func TestElibeCountries(t *testing.T) {
      geoCodes.UseLanguage("it")
-     country0 := geoCodes.Countries().WithIndex("Alpha2").Get().AsMap()["IE"]["FullName"]
+     country0 := geoCodes.Countries().WithIndex(primaryKey).Get().AsMap()["IE"]["FullName"]
 
 //     fmt.Printf("Lingua: %v\n", geoCodes.GetAvailableLanguages())
 //     fmt.Println("   \n")
@@ -272,7 +272,7 @@ func TestElibeCountries(t *testing.T) {
     //country0 := geoCodes.Countries().First().ToJson()
 //     country0 := geoCodes.Countries().Select("Currencies.LegalTenders", "Alpha3", "Name", "OfficialName").First().ToXml()
 //     country0 := geoCodes.Countries().Get().ToJson()
-//     country0 := geoCodes.Countries().WithIndex("Alpha2").Get().ToJson()
+//     country0 := geoCodes.Countries().WithIndex(primaryKey).Get().ToJson()
 //     fmt.Printf("%v", country0)
 
 //     country0 := geoCodes.Countries().WithIndex("FullName").Select("Alpha2", "Alpha3", "Name", "OfficialName").Get().ToXml()
