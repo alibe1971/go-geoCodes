@@ -5,6 +5,7 @@ import (
 //     "bytes"
     "encoding/json"
     "encoding/xml"
+    "gopkg.in/yaml.v3"
 //     "sync"
 //     "os"
 //     "log"
@@ -49,3 +50,17 @@ func IsInSlice(slice []string, value string) bool {
     return false
 }
 
+func ValidateYAML(data []byte) error {
+	var y interface{}
+	return yaml.Unmarshal(data, &y)
+}
+
+func ValidateXML(data []byte) error {
+	var x interface{}
+	return xml.Unmarshal(data, &x)
+}
+
+func ValidateJSON(data []byte) error {
+	var js interface{}
+	return json.Unmarshal(data, &js)
+}

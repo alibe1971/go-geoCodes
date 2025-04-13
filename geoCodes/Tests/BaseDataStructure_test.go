@@ -25,15 +25,15 @@ func TestBaseDataStructure(t *testing.T) {
     var CU *Structs.Currencies
         var isoAlphaMap map[string]struct{}
 
-    t.Run("DataBase initialization", func(t *testing.T) {
-        t.Run("Config data initialization", func(t *testing.T) {
+    t.Run("DataBaseInitialization", func(t *testing.T) {
+        t.Run("ConfigDataInitialization", func(t *testing.T) {
             TestLib.LoadData("config", data.Config, &Structs.Config{})
             cfg = TestLib.GetData("config").(*Structs.Config)
             if cfg == nil {
                 t.Fatal("Config data is not initialized")
             }
         })
-        t.Run("Countries data initialization", func(t *testing.T) {
+        t.Run("CountriesDataInitialization", func(t *testing.T) {
             CC = new(Structs.Countries)
             TestLib.LoadData("countries", data.Countries, CC)
             loadedData := TestLib.GetData("countries")
@@ -50,7 +50,7 @@ func TestBaseDataStructure(t *testing.T) {
 				ccUnM49Map[cc.UnM49] = struct{}{}
 			}
         })
-        t.Run("GeoSets data initialization", func(t *testing.T) {
+        t.Run("GeoSetsDataInitialization", func(t *testing.T) {
             GS = new(Structs.GeoSets)
             TestLib.LoadData("geoSets", data.GeoSets, GS)
             loadedData := TestLib.GetData("geoSets")
@@ -69,7 +69,7 @@ func TestBaseDataStructure(t *testing.T) {
 			    }
 			}
         })
-        t.Run("Currencies data initialization", func(t *testing.T) {
+        t.Run("CurrenciesDataInitialization", func(t *testing.T) {
             CU = new(Structs.Currencies)
             TestLib.LoadData("currencies", data.Currencies, CU)
             loadedData := TestLib.GetData("currencies")
@@ -81,15 +81,15 @@ func TestBaseDataStructure(t *testing.T) {
             }
             isoAlphaMap = make(map[string]struct{})
             for _, cu := range *CU {
-                isoAlphaMap[cu.ISOAlpha] = struct{}{}
+                isoAlphaMap[cu.IsoAlpha] = struct{}{}
             }
         })
     })
 
 
-    t.Run("Tests on Config data", func(t *testing.T) {
+    t.Run("TestsOnConfigData", func(t *testing.T) {
 
-        t.Run("Check the data Config structure", func(t *testing.T) {
+        t.Run("CheckTheDataConfigStructure", func(t *testing.T) {
             translations = make([]string, 0, len(cfg.Settings.Languages.InPackage))
             for key, locale := range cfg.Settings.Languages.InPackage {
                 assert.True(t, regexp.MustCompile(`^[a-z]{2}(_[A-Za-z]+)*(_[A-Z]{2})?$`).MatchString(locale),
@@ -100,17 +100,17 @@ func TestBaseDataStructure(t *testing.T) {
         })
     })
 
-    t.Run("Tests on Countries data", func(t *testing.T) {
-        t.Run("Check the data Countries structure", func(t *testing.T) {
+    t.Run("TestsOnCountriesData", func(t *testing.T) {
+        t.Run("CheckTheDataCountriesStructure", func(t *testing.T) {
             seenAlpha2 := []string{}
             seenAlpha3 := []string{}
             seenUnM49  := []string{}
             uniqueKeysOfficialName := make(map[string]bool)
             for _, cc := range *CC {
-                t.Run("Check the data structure for country " + cc.Alpha2, func(t *testing.T) {
+                t.Run("CheckTheDataStructureForCountry:" + cc.Alpha2, func(t *testing.T) {
 
                     /** alpha2 **/
-                    t.Run("Check the alpha2 property", func(t *testing.T) {
+                    t.Run("CheckTheAlpha2Property", func(t *testing.T) {
                         assert.True(t, regexp.MustCompile(`^[A-Z]{2}$`).MatchString(cc.Alpha2),
                             "Wrong format for alpha2")
                         assert.False(t, TestLib.IsInSlice(seenAlpha2, cc.Alpha2),
@@ -119,7 +119,7 @@ func TestBaseDataStructure(t *testing.T) {
                     })
 
                     /** alpha3 **/
-                    t.Run("Check the alpha3 property", func(t *testing.T) {
+                    t.Run("CheckTheAlpha3Property", func(t *testing.T) {
                         assert.True(t, regexp.MustCompile(`^[A-Z]{3}$`).MatchString(cc.Alpha3),
                             "Wrong format for alpha3")
                         assert.False(t, TestLib.IsInSlice(seenAlpha3, cc.Alpha3),
@@ -128,7 +128,7 @@ func TestBaseDataStructure(t *testing.T) {
                     })
 
                     /** unM49 **/
-                    t.Run("Check the unM49 property", func(t *testing.T) {
+                    t.Run("CheckTheUnM49Property", func(t *testing.T) {
                         assert.True(t, regexp.MustCompile(`^[0-9]{3}$`).MatchString(cc.UnM49),
                             "Wrong format for unM49")
                         assert.False(t, TestLib.IsInSlice(seenUnM49, cc.UnM49),
@@ -142,15 +142,15 @@ func TestBaseDataStructure(t *testing.T) {
                     })
 
                     /** flags **/
-                    t.Run("Check the flag property", func(t *testing.T) {
-                        t.Run("Check the flag.svg property", func(t *testing.T) {
-                            assert.NotEmpty(t, cc.Flags.SVG, "flags.SVG must not be empty")
-                            assert.True(t, TestLib.IsValidSVG(cc.Flags.SVG), "Flags.SVG must be a valid SVG")
+                    t.Run("CheckTheFlagProperty", func(t *testing.T) {
+                        t.Run("CheckTheFlagSvgProperty", func(t *testing.T) {
+                            assert.NotEmpty(t, cc.Flags.Svg, "flags.Svg must not be empty")
+                            assert.True(t, TestLib.IsValidSVG(cc.Flags.Svg), "Flags.Svg must be a valid Svg")
                         })
                     })
 
                     /** dependency **/
-                    t.Run("Check the dependency property", func(t *testing.T) {
+                    t.Run("CheckTheDependencyProperty", func(t *testing.T) {
                         if cc.Dependency != nil {
                             dependencyStr := *cc.Dependency
                             assert.True(t, regexp.MustCompile(`^[A-Z]{2}$`).MatchString(dependencyStr),
@@ -161,7 +161,7 @@ func TestBaseDataStructure(t *testing.T) {
                     })
 
                     /** officialName **/
-                    t.Run("Check the officialName property", func(t *testing.T) {
+                    t.Run("CheckTheOfficialNameProperty", func(t *testing.T) {
                         assert.NotEmpty(t, cc.OfficialName, "officialName must not be empty")
                         for lang, name := range cc.OfficialName {
                             if name == "" {
@@ -178,13 +178,13 @@ func TestBaseDataStructure(t *testing.T) {
                     })
 
                     /** mottos **/
-                    t.Run("Check the mottos property", func(t *testing.T) {
+                    t.Run("CheckTheMottosProperty", func(t *testing.T) {
                          // Nothing to do
                     })
 
                     /** currencies **/
-                    t.Run("Check the currency property", func(t *testing.T) {
-                        t.Run("Check the currency.legalTender property", func(t *testing.T) {
+                    t.Run("CheckTheCurrencyProperty", func(t *testing.T) {
+                        t.Run("CheckTheCurrencyLegalTenderProperty", func(t *testing.T) {
                             if len(cc.Currencies.LegalTenders) > 0 {
                                 for _, currency := range cc.Currencies.LegalTenders {
                                     assert.True(t, regexp.MustCompile(`^[A-Z]{3}$`).MatchString(currency),
@@ -194,7 +194,7 @@ func TestBaseDataStructure(t *testing.T) {
                                 }
                             }
                         })
-                        t.Run("Check the currency.widelyAccepted property", func(t *testing.T) {
+                        t.Run("CheckTheCurrencyWidelyAcceptedProperty", func(t *testing.T) {
                             if len(cc.Currencies.WidelyAccepted) > 0 {
                                 for _, currency := range cc.Currencies.WidelyAccepted {
                                     assert.True(t, regexp.MustCompile(`^[A-Z]{3}$`).MatchString(currency),
@@ -216,8 +216,8 @@ func TestBaseDataStructure(t *testing.T) {
                     })
 
                     /** dialCodes **/
-                    t.Run("Check the dialCodes property", func(t *testing.T) {
-                        t.Run("Check the dialCodes.main values have the right format", func(t *testing.T) {
+                    t.Run("CheckTheDialCodesProperty", func(t *testing.T) {
+                        t.Run("CheckTheDialCodesMainValuesHaveTheRightFormat", func(t *testing.T) {
                             if len(cc.DialCodes.Main) > 0 {
                                 for _, dial := range cc.DialCodes.Main {
                                     assert.True(t, regexp.MustCompile(`^\+\d+$`).MatchString(dial),
@@ -225,7 +225,7 @@ func TestBaseDataStructure(t *testing.T) {
                                 }
                             }
                         })
-                        t.Run("Check the dialCodes.exceptions values have the right format", func(t *testing.T) {
+                        t.Run("CheckTheDialCodesExceptionsValuesHaveTheRightFormat", func(t *testing.T) {
                             if len(cc.DialCodes.Exceptions) > 0 {
                                 for _, dial := range cc.DialCodes.Exceptions {
                                     assert.True(t, regexp.MustCompile(`^\+\d+$`).MatchString(dial),
@@ -236,26 +236,26 @@ func TestBaseDataStructure(t *testing.T) {
                     })
 
                     /** ccTld **/
-                    t.Run("Check the ccTld property", func(t *testing.T) {
-                        if cc.CcTLD != nil {
-                            CcTld := *cc.CcTLD
+                    t.Run("CheckTheCcTldProperty", func(t *testing.T) {
+                        if cc.CcTld != nil {
+                            CcTld := *cc.CcTld
                             assert.True(t, regexp.MustCompile(`^\.[a-z]{2}$`).MatchString(CcTld),
-                                "Wrong format for ccTLD")
+                                "Wrong format for CcTld")
                         }
                     })
 
                     /** timeZones **/
-                    t.Run("Check the timeZones property", func(t *testing.T) {
+                    t.Run("CheckTheTimeZonesProperty", func(t *testing.T) {
                          assert.NotEmpty(t, cc.TimeZones, "The timeZones cannot be empty")
                     })
 
                     /** languages **/
-                    t.Run("Check the languages property", func(t *testing.T) {
+                    t.Run("CheckTheLanguagesProperty", func(t *testing.T) {
                          // [TODO]
                     })
 
                     /** locales **/
-                    t.Run("Check the locales property", func(t *testing.T) {
+                    t.Run("CheckTheLocalesProperty", func(t *testing.T) {
                          assert.NotEmpty(t, cc.Locales, "The timeZones locales be empty")
                     })
 
@@ -263,9 +263,9 @@ func TestBaseDataStructure(t *testing.T) {
             }
         })
 
-        t.Run("Tests on Countries Translation data", func(t *testing.T) {
+        t.Run("TestsOnCountriesTranslationData", func(t *testing.T) {
             TranslationsCC := make(map[string]*Structs.TransCountries)
-            t.Run("Translation Countries data initialization", func(t *testing.T) {
+            t.Run("TranslationCountriesDataInitialization", func(t *testing.T) {
                 for _, lang := range translations {
                     var tr = new(Structs.TransCountries)
                     TestLib.LoadData("trans_" + lang + "_countries", transData.Countries[lang], tr)
@@ -279,26 +279,26 @@ func TestBaseDataStructure(t *testing.T) {
                     TranslationsCC[lang] = tr
                 }
             })
-            t.Run("Translation Countries check data", func(t *testing.T) {
+            t.Run("TranslationCountriesCheckData", func(t *testing.T) {
                 for lang, trans := range TranslationsCC {
-                    t.Run(fmt.Sprintf("Test for the language: %s", lang), func(t *testing.T) {
+                    t.Run(fmt.Sprintf("TestForTheLanguage:%s", lang), func(t *testing.T) {
                         var translationKeys []string
                         for cc, tr :=range *trans {
-                            t.Run(fmt.Sprintf("Test for the country: %s", cc), func(t *testing.T) {
+                            t.Run(fmt.Sprintf("TestForTheCountry:%s", cc), func(t *testing.T) {
                                 translationKeys = append(translationKeys, cc)
-                                t.Run("Check the country exists", func(t *testing.T) {
+                                t.Run("CheckTheCountryExists", func(t *testing.T) {
                                     assert.True(t, TestLib.IsInMap(alpha2Map, cc),
                                         "The country code in the translation must match an existing alpha2")
                                 })
 
                                 if lang == cfg.Settings.Languages.Default {
                                     trimmedName := strings.TrimSpace(tr.Name)
-                                    t.Run("Check translation name exists for default language", func(t *testing.T) {
+                                    t.Run("CheckTranslationNameExistsForDefaultLanguage", func(t *testing.T) {
                                         assert.True(t, trimmedName != "",
                                             "In default language the property name must exist and not be empty")
                                     })
                                     trimmedFullName := strings.TrimSpace(tr.FullName)
-                                    t.Run("Check translation name exists for default language", func(t *testing.T) {
+                                    t.Run("CheckTranslationNameExistsForDefaultLanguage", func(t *testing.T) {
                                         assert.True(t, trimmedFullName != "",
                                             "In default language the property FullName must exist and not be empty")
                                     })
@@ -306,7 +306,7 @@ func TestBaseDataStructure(t *testing.T) {
                             })
                         }
                         if lang == cfg.Settings.Languages.Default {
-                            t.Run("Check all the countries are present in the default language", func(t *testing.T) {
+                            t.Run("CheckAllTheCountriesArePresentInTheDefaultLanguage", func(t *testing.T) {
                                 assert.True(t, len(alpha2Map) == len(translationKeys),
                                     "Not all the countries are present in the translation for default language")
                             })
@@ -317,17 +317,17 @@ func TestBaseDataStructure(t *testing.T) {
         })
     })
 
-    t.Run("Tests on geoSets data", func(t *testing.T) {
-        t.Run("Check the data geoSets structure", func(t *testing.T) {
+    t.Run("TestsOnGeoSetsData", func(t *testing.T) {
+        t.Run("CheckTheDataGeoSetsStructure", func(t *testing.T) {
             seenInternalCode := []string{}
             seenUnM49  := []string{}
             seenGEOG := make(map[string][]string)
             geogGr := []string{}
             geoLv := make([][]string, 2)
             for _, gs := range *GS {
-                t.Run("Check the data structure for geoSet " + gs.InternalCode, func(t *testing.T) {
+                t.Run("CheckTheDataStructureForGeoSet:" + gs.InternalCode, func(t *testing.T) {
                     /** internalCode **/
-                    t.Run("Check the internalCode property", func(t *testing.T) {
+                    t.Run("CheckTheInternalCodeProperty", func(t *testing.T) {
                         isValidFormat := regexp.MustCompile(`^[A-Z]+(-[A-Z0-9]+){1,4}$`).MatchString(gs.InternalCode)
                         assert.True(t, isValidFormat, "Wrong format for InternalCode")
                         isDuplicate := TestLib.IsInSlice(seenInternalCode, gs.InternalCode)
@@ -338,7 +338,7 @@ func TestBaseDataStructure(t *testing.T) {
                     /** unM49 **/
                     if gs.UnM49 != nil {
                         UnM49 := *gs.UnM49
-                        t.Run("Check the unM49 property", func(t *testing.T) {
+                        t.Run("CheckTheUnM49Property", func(t *testing.T) {
                             assert.True(t, regexp.MustCompile(`^[0-9]{3}$`).MatchString(UnM49),
                                 "Wrong format for unM49")
                             assert.False(t, TestLib.IsInSlice(seenUnM49, UnM49),
@@ -352,17 +352,17 @@ func TestBaseDataStructure(t *testing.T) {
                         })
                     }
 
-                    /** timeZones **/
-                    t.Run("Check the tags property", func(t *testing.T) {
+                    /** tags **/
+                    t.Run("CheckTheTagsProperty", func(t *testing.T) {
                          assert.NotEmpty(t, gs.Tags, "The tags cannot be empty")
                     })
 
                     /** countryCodes **/
-                    t.Run("Check the countryCodes property", func(t *testing.T) {
+                    t.Run("CheckTheCountryCodesProperty", func(t *testing.T) {
                          assert.NotEmpty(t, gs.CountryCodes, "The countryCodes cannot be empty")
 
                          for _,cc := range gs.CountryCodes {
-                            t.Run("Check the country code exists", func(t *testing.T) {
+                            t.Run("CheckTheCountryCodeExists", func(t *testing.T) {
                                 assert.True(t, TestLib.IsInMap(alpha2Map, cc),
                                     "The country code must match an existing alpha2")
                             })
@@ -404,16 +404,16 @@ func TestBaseDataStructure(t *testing.T) {
                     })
                 })
             }
-            t.Run("Test that the geographic group have all the countries", func(t *testing.T) {
+            t.Run("TestThatTheGeographicGroupsHaveAllTheCountries", func(t *testing.T) {
                 str := fmt.Sprintf("%d", len(geogGr))
                 assert.True(t, len(alpha2Map) == len(geogGr),
                     "The Geographic Groups haven't inside all the countries " + str)
             })
         })
 
-        t.Run("Tests on GeoSets Translation data", func(t *testing.T) {
+        t.Run("TestsOnGeoSetsTranslationData", func(t *testing.T) {
             TranslationsGS := make(map[string]*Structs.TransGeneric)
-            t.Run("Translation GeoSets data initialization", func(t *testing.T) {
+            t.Run("TranslationGeoSetsDataInitialization", func(t *testing.T) {
                 for _, lang := range translations {
                     var tr = new(Structs.TransGeneric)
                     TestLib.LoadData("trans_" + lang + "_geosets", transData.GeoSets[lang], tr)
@@ -427,21 +427,21 @@ func TestBaseDataStructure(t *testing.T) {
                     TranslationsGS[lang] = tr
                 }
             })
-            t.Run("Translation GeoSets check data", func(t *testing.T) {
+            t.Run("TranslationGeoSetsCheckData", func(t *testing.T) {
                 for lang, trans := range TranslationsGS {
-                    t.Run(fmt.Sprintf("Test for the language: %s", lang), func(t *testing.T) {
+                    t.Run(fmt.Sprintf("TestForTheLanguage:%s", lang), func(t *testing.T) {
                         var translationKeys []string
                         for gs, tr :=range *trans {
-                            t.Run(fmt.Sprintf("Test for the geoSet: %s", gs), func(t *testing.T) {
+                            t.Run(fmt.Sprintf("TestForTheGeoSet:%s", gs), func(t *testing.T) {
                                 translationKeys = append(translationKeys, gs)
-                                t.Run("Check the geoSet exists", func(t *testing.T) {
+                                t.Run("CheckTheGeoSetExists", func(t *testing.T) {
                                     assert.True(t, TestLib.IsInMap(internalCodeMap, gs),
                                         "The country code in the translation must match an existing internalCode")
                                 })
 
                                 if lang == cfg.Settings.Languages.Default {
                                     trimmedName := strings.TrimSpace(tr.Name)
-                                    t.Run("Check translation name exists for default language", func(t *testing.T) {
+                                    t.Run("CheckTranslationNameExistsForDefaultLanguage", func(t *testing.T) {
                                         assert.True(t, trimmedName != "",
                                             "In default language the property name must exist and not be empty")
                                     })
@@ -449,7 +449,7 @@ func TestBaseDataStructure(t *testing.T) {
                             })
                         }
                         if lang == cfg.Settings.Languages.Default {
-                            t.Run("Check all the geoSets are present in the default language", func(t *testing.T) {
+                            t.Run("CheckAllTheGeoSetsArePresentInTheDefaultLanguage", func(t *testing.T) {
                                 assert.True(t, len(internalCodeMap) == len(translationKeys),
                                     "Not all the geosets are present in the translation for default language")
                             })
@@ -460,37 +460,37 @@ func TestBaseDataStructure(t *testing.T) {
         })
     })
 
-    t.Run("Tests on Currencies data", func(t *testing.T) {
-        t.Run("Check the data Currencies structure", func(t *testing.T) {
+    t.Run("TestsOnCurrenciesData", func(t *testing.T) {
+        t.Run("CheckTheDataCurrenciesStructure", func(t *testing.T) {
             seenIsoAlpha := []string{}
             seenIsoNumber := []string{}
             for _, cu := range *CU {
-                t.Run("Check the data structure for currency " + cu.ISOAlpha, func(t *testing.T) {
+                t.Run("CheckTheDataStructureForCurrency:" + cu.IsoAlpha, func(t *testing.T) {
 
                     /** isoAlpha **/
-                    t.Run("Check the isoAlpha property", func(t *testing.T) {
-                        isValidFormat := regexp.MustCompile(`^[A-Z]{3}$`).MatchString(cu.ISOAlpha)
+                    t.Run("CheckTheIsoAlphaProperty", func(t *testing.T) {
+                        isValidFormat := regexp.MustCompile(`^[A-Z]{3}$`).MatchString(cu.IsoAlpha)
                         assert.True(t, isValidFormat, "Wrong format for isoAlpha")
-                        isDuplicate := TestLib.IsInSlice(seenIsoAlpha, cu.ISOAlpha)
-                        assert.False(t, isDuplicate, fmt.Sprintf("Duplicate isoAlpha found: %s", cu.ISOAlpha))
-                        seenIsoAlpha = append(seenIsoAlpha, cu.ISOAlpha)
+                        isDuplicate := TestLib.IsInSlice(seenIsoAlpha, cu.IsoAlpha)
+                        assert.False(t, isDuplicate, fmt.Sprintf("Duplicate isoAlpha found: %s", cu.IsoAlpha))
+                        seenIsoAlpha = append(seenIsoAlpha, cu.IsoAlpha)
                     })
 
                     /** isoNumber **/
-                    t.Run("Check the isoNumber property", func(t *testing.T) {
-                        isValidFormat := regexp.MustCompile(`^[0-9]{3}$`).MatchString(cu.ISONumber)
+                    t.Run("CheckTheIsoNumberProperty", func(t *testing.T) {
+                        isValidFormat := regexp.MustCompile(`^[0-9]{3}$`).MatchString(cu.IsoNumber)
                         assert.True(t, isValidFormat, "Wrong format for isoNumber")
-                        isDuplicate := TestLib.IsInSlice(seenIsoNumber, cu.ISONumber)
-                        assert.False(t, isDuplicate, fmt.Sprintf("Duplicate isoNumber found: %s", cu.ISONumber))
-                        seenIsoAlpha = append(seenIsoNumber, cu.ISONumber)
+                        isDuplicate := TestLib.IsInSlice(seenIsoNumber, cu.IsoNumber)
+                        assert.False(t, isDuplicate, fmt.Sprintf("Duplicate isoNumber found: %s", cu.IsoNumber))
+                        seenIsoAlpha = append(seenIsoNumber, cu.IsoNumber)
                     })
                 })
             }
         })
 
-        t.Run("Tests on Currencies Translation data", func(t *testing.T) {
+        t.Run("TestsOnCurrenciesTranslationData", func(t *testing.T) {
             TranslationsCU := make(map[string]*Structs.TransGeneric)
-            t.Run("Translation Currencies data initialization", func(t *testing.T) {
+            t.Run("TranslationCurrenciesDataInitialization", func(t *testing.T) {
                 for _, lang := range translations {
                     var tr = new(Structs.TransGeneric)
                     TestLib.LoadData("trans_" + lang + "currencies", transData.Currencies[lang], tr)
@@ -504,21 +504,21 @@ func TestBaseDataStructure(t *testing.T) {
                     TranslationsCU[lang] = tr
                 }
             })
-            t.Run("Translation Currencies check data", func(t *testing.T) {
+            t.Run("TranslationCurrenciesCheckData", func(t *testing.T) {
                 for lang, trans := range TranslationsCU {
-                    t.Run(fmt.Sprintf("Test for the language: %s", lang), func(t *testing.T) {
+                    t.Run(fmt.Sprintf("TestForTheLanguage:%s", lang), func(t *testing.T) {
                         var translationKeys []string
                         for cu, tr :=range *trans {
-                            t.Run(fmt.Sprintf("Test for the currency: %s", cu), func(t *testing.T) {
+                            t.Run(fmt.Sprintf("TestForTheCurrency:%s", cu), func(t *testing.T) {
                                 translationKeys = append(translationKeys, cu)
-                                t.Run("Check the currency exists", func(t *testing.T) {
+                                t.Run("CheckTheCurrencyExists", func(t *testing.T) {
                                     assert.True(t, TestLib.IsInMap(isoAlphaMap, cu),
                                         "The currency code in the translation must match an existing internalCode")
                                 })
 
                                 if lang == cfg.Settings.Languages.Default {
                                     trimmedName := strings.TrimSpace(tr.Name)
-                                    t.Run("Check translation name exists for default language", func(t *testing.T) {
+                                    t.Run("CheckTranslationNameExistsForDefaultLanguage", func(t *testing.T) {
                                         assert.True(t, trimmedName != "",
                                             "In default language the property name must exist and not be empty")
                                     })
@@ -526,7 +526,7 @@ func TestBaseDataStructure(t *testing.T) {
                             })
                         }
                         if lang == cfg.Settings.Languages.Default {
-                            t.Run("Check all the currencies are present in the default language", func(t *testing.T) {
+                            t.Run("CheckAllTheCurrenciesArePresentInTheDefaultLanguage", func(t *testing.T) {
                                 assert.True(t, len(isoAlphaMap) == len(translationKeys),
                                     "Not all the currencies are present in the translation for default language")
                             })
