@@ -30,6 +30,13 @@ var GeoSetSettings = SettingsType {
     },
 }
 
+var MapBuildXmlGeoSets = map[string]XmlFieldMapping{
+    "geoSet": {
+        TagName: "geoSet",
+        Children: MapBuildXmlGeoSet,
+    },
+}
+
 var MapBuildXmlGeoSet = map[string]XmlFieldMapping{
     "internalCode": {
         TagName: "internalCode",

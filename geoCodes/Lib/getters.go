@@ -81,12 +81,11 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
     var err error
     var rootTag string = geocodesMap[reference].SetType
     var itemTag string = Structs.SingleItemName[rootTag]
+    var instanceTag string = rootTag
     dataType := "nil"
     if data != nil {
         dataType = reflect.TypeOf(data).String()
     }
-
-    instanceTag := rootTag
 
     switch dataType {
         case "map[string]interface {}":
@@ -132,17 +131,17 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
             }
             var xmlString string
             var constructor map[string]Structs.XmlFieldMapping
-
-//             fmt.Println("rootTag:", rootTag)
-//             fmt.Println("itemTag:", itemTag)
-
             constructor = Structs.TypeMapBuildXml[instanceTag]
-            xmlString, err = mapToXML(unstructured, itemTag, constructor, 0)
-//             xmlString, err = mapToXML(unstructured, itemTag, Structs.MapBuildXmlCountry, 0)
+
+            if instanceTag == rootTag {
+                xmlString, err = mapListToXML(unstructured, instanceTag, dataType, constructor)
+            } else {
+                xmlString, err = mapToXML(unstructured, instanceTag, constructor, "", 0)
+            }
             if err != nil {
                 fmt.Println("ERRORE XML:", err)
             }
-            toStringData = []byte(xmlString)
+            toStringData = []byte("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + xmlString)
     }
 
 

@@ -84,6 +84,13 @@ var CountrySettings = SettingsType {
     },
 }
 
+var MapBuildXmlCountries = map[string]XmlFieldMapping{
+    "country": {
+        TagName: "country",
+        Children: MapBuildXmlCountry,
+    },
+}
+
 var MapBuildXmlCountry = map[string]XmlFieldMapping{
     "alpha2": {
         TagName: "alpha2",

@@ -30,6 +30,13 @@ var CurrencySettings = SettingsType {
     },
 }
 
+var MapBuildXmlCurrencies = map[string]XmlFieldMapping{
+    "currency": {
+        TagName: "currency",
+        Children: MapBuildXmlCurrency,
+    },
+}
+
 var MapBuildXmlCurrency = map[string]XmlFieldMapping{
     "isoAlpha": {
         TagName: "isoAlpha",

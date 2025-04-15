@@ -18,15 +18,15 @@ type SettingsType struct {
 }
 
 var SettingsMap = map[string]interface{}{
-    "countries": CountrySettings,
-    "geoSets":  GeoSetSettings,
-    "currencies":  CurrencySettings,
+    "countries":    CountrySettings,
+    "geoSets":      GeoSetSettings,
+    "currencies":   CurrencySettings,
 }
 
 var TransSettingsMap = map[string]interface{}{
-    "countries": TransCountry{},
-    "geoSets":  TransGenericItem{},
-    "currencies":  TransGenericItem{},
+    "countries":    TransCountry{},
+    "geoSets":      TransGenericItem{},
+    "currencies":   TransGenericItem{},
 }
 
 type Enquiries struct {
@@ -47,9 +47,9 @@ type OrderByStruct struct {
 }
 
 var SingleItemName = map[string]string{
-    "countries": "country",
-    "geoSets":  "geoSet",
-    "currencies":  "currency",
+    "countries":    "country",
+    "geoSets":      "geoSet",
+    "currencies":   "currency",
 }
 
 var TypeMap = map[string]func() interface{}{
@@ -62,9 +62,12 @@ var TypeMap = map[string]func() interface{}{
 }
 
 var TypeMapBuildXml = map[string]map[string]XmlFieldMapping{
-    "country": MapBuildXmlCountry,
-    "geoSet":  MapBuildXmlGeoSet,
-    "currency":  MapBuildXmlCurrency,
+    "countries":    MapBuildXmlCountries,
+    "country":      MapBuildXmlCountry,
+    "geoSets":      MapBuildXmlGeoSets,
+    "geoSet":       MapBuildXmlGeoSet,
+    "currencies":   MapBuildXmlCurrencies,
+    "currency":     MapBuildXmlCurrency,
 }
 
 
@@ -72,7 +75,7 @@ var TypeMapBuildXml = map[string]map[string]XmlFieldMapping{
 var TypeMapXml = map[string]func() interface{}{
     "countries":    func() interface{} { return &CountriesXml{} },
     "currencies":   func() interface{} { return &CurrenciesXml{} },
-    "geoSets":   func() interface{} { return &GeoSetsXml{} },
+    "geoSets":      func() interface{} { return &GeoSetsXml{} },
 }
 
 var ConverterMapXml = map[string]func(interface{}) interface{}{
@@ -96,14 +99,14 @@ type CDATA struct {
 
 
 type XmlFieldMapping struct {
-    Field     string
-    IsList    bool
-    CDATA     bool
-    AsAttributes bool
-    AsInt       bool
-    AttrName  string
-    TagName   string
-    Children  map[string]XmlFieldMapping
+    Field           string
+    IsList          bool
+    CDATA           bool
+    AsAttributes    bool
+    AsInt           bool
+    AttrName        string
+    TagName         string
+    Children        map[string]XmlFieldMapping
 }
 
 

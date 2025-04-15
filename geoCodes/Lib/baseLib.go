@@ -263,14 +263,71 @@ type notFoundInData struct{}
 
 var notFound = notFoundInData{}
 
+func mapListToXML(
+    data interface{},
+    containerName string, // Il nome del container (es: "currencies")
+    dataType string,      // Una stringa che descrive il tipo, ad es. "[]map[string]interface {}"
+    xmlMapping map[string]Structs.XmlFieldMapping,
+) (string, error) {
+
+    if data == nil {
+        return "", nil
+    }
+
+    var listTag string
+    var sb strings.Builder
+    var constructor map[string]Structs.XmlFieldMapping
+
+    for _, mapping := range xmlMapping {
+        listTag = mapping.TagName
+        constructor = mapping.Children
+        break
+    }
+
+    sb.WriteString("<" + containerName + ">\n")
+    switch dataType {
+        case "map[string]map[string]interface {}":
+            dataMap, ok := data.(map[string]interface {})
+            if !ok {
+                return "", fmt.Errorf("Errore: atteso []map[string]interface{} ma ottenuto %T", data)
+            }
+            for index, singleItem := range dataMap {
+                xmlString, err := mapToXML(singleItem, listTag, constructor, index, 1)
+                if err != nil {
+                    return "", err
+                }
+                sb.WriteString(xmlString)
+            }
+        case "[]map[string]interface {}":
+            dataSlice, ok := data.([]interface{})
+            if !ok {
+                return "", fmt.Errorf("Errore: atteso []map[string]interface{} ma ottenuto %T", data)
+            }
+            for _, singleItem := range dataSlice {
+                xmlString, err := mapToXML(singleItem, listTag, constructor, "", 1)
+                if err != nil {
+                    return "", err
+                }
+                sb.WriteString(xmlString)
+            }
+        default:
+            return "", fmt.Errorf("Tipo di dato non gestito: %s", dataType)
+    }
+
+    sb.WriteString("</" + containerName + ">\n")
+    return sb.String(), nil
+}
+
+
+
 // mapToXML è la funzione "principale" che genera l'XML per un singolo oggetto.
 func mapToXML(
     data interface{},
     itemTag string,
     xmlMapping map[string]Structs.XmlFieldMapping,
+    rootAttribute string,
     indentLevel int,
 ) (string, error) {
-
     if data == nil {
         return "", nil
     }
@@ -279,7 +336,11 @@ func mapToXML(
 
     // Apertura tag radice
     sb.WriteString(indentString(indentLevel))
-    sb.WriteString("<" + itemTag + ">\n")
+    if rootAttribute == "" {
+        sb.WriteString("<" + itemTag + ">\n")
+    } else {
+        sb.WriteString("<" + itemTag + " index=\"" + rootAttribute +"\">\n")
+    }
 
     // Iterazione sulle chiavi del mapping
     for fieldName, fieldMap := range xmlMapping {
