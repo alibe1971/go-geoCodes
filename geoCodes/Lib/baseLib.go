@@ -212,6 +212,40 @@ func reverseStackTrace(trace string) string {
     return reversed.String()
 }
 
+/********/
+func flattenMap(prefix string, m map[string]interface{}, sep string, out map[string]interface{}) {
+    for k, v := range m {
+        key := k
+        if prefix != "" {
+            key = prefix + sep + key
+        }
+        switch vv := v.(type) {
+        case map[string]interface{}:
+            flattenMap(key, vv, sep, out)
+        case []interface{}:
+            flattenSlice(key, vv, sep, out)
+        default:
+            out[key] = vv
+        }
+    }
+}
+
+func flattenSlice(prefix string, s []interface{}, sep string, out map[string]interface{}) {
+    for i, v := range s {
+        key := toString(i) //fmt.Sprintf("%d", i)
+        if prefix != "" {
+            key = prefix + sep + key
+        }
+        switch vv := v.(type) {
+        case map[string]interface{}:
+            flattenMap(key, vv, sep, out)
+        case []interface{}:
+            flattenSlice(key, vv, sep, out)
+        default:
+            out[key] = vv
+        }
+    }
+}
 
 /********/
 
@@ -245,18 +279,6 @@ func structToMap(v reflect.Value) map[string]interface{} {
 	}
 	return result
 }
-
-// func structToMap(i interface{}) (map[string]interface{}, error) {
-// 	var result map[string]interface{}
-// 	b, err := json.Marshal(i)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	err = json.Unmarshal(b, &result)
-// 	return result, err
-// }
-
-/****/
 
 // Tipo per indicare che il campo non è presente
 type notFoundInData struct{}

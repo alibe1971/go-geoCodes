@@ -12,7 +12,6 @@ import (
     "golang.org/x/text/collate"
     "golang.org/x/text/language"
     "fmt"
-    "os"
     "errors"
     "sort"
     "io/ioutil"
@@ -74,6 +73,35 @@ func getXsd(name string) ([]byte, error) {
     }
     return xsd, nil
 }
+
+func getDataAsFlattenMap(reference Structs.GeoCodeReference, data interface{}, sep string) (map[string]interface{}, error) {
+    if data == nil {
+        return nil, nil
+    }
+    // 1) JSON.Marshal di QUALUNQUE data (struct, map[string]interface{}, slice, ecc.)
+    b, err := json.Marshal(data)
+    if err != nil {
+        return nil, fmt.Errorf("json.Marshal fallita: %w", err)
+    }
+    // 2) JSON.Unmarshal in interface{} per catturare sia oggetti che array
+    var intermediate interface{}
+    if err := json.Unmarshal(b, &intermediate); err != nil {
+        return nil, fmt.Errorf("json.Unmarshal fallita: %w", err)
+    }
+    // 3) a seconda di cosa ottengo, appiattisco la mappa o il slice
+    flat := make(map[string]interface{})
+    switch root := intermediate.(type) {
+    case map[string]interface{}:
+        flattenMap("", root, sep, flat)
+    case []interface{}:
+        flattenSlice("", root, sep, flat)
+    default:
+        return nil, fmt.Errorf("tipo root non supportato: %T", root)
+    }
+    return flat, nil
+}
+
+
 
 func getDataOnString(reference Structs.GeoCodeReference, data interface{}, method string) (string, error) {
 
@@ -151,17 +179,6 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
     return string(toStringData), nil
 }
 
-
-
-
-
-
-
-
-func validateXMLAgainstXSD(xmlData []byte, xsdSchema []byte) {
-//     [todo]  https://chatgpt.com/c/66e16d6d-1ec8-8004-aacb-878ba7bd24fc
-// DA RIMUOVERE
-}
 
 func getSelectedFields(reference Structs.GeoCodeReference) []string {
     if len(geocodesMap[reference].SetEnquiries.Select) == 0 {
@@ -261,12 +278,6 @@ func compareItems(a, b interface{}, orderBy string, direction string, collator *
         }
     }
     return false
-}
-
-
-func STICA() {
-    fmt.Println("STICA\n")
-    os.Exit(1)
 }
 
 
