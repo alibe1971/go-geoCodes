@@ -82,8 +82,8 @@ func OutPutObject(reference Structs.GeoCodeReference, method string) interface{}
 	return nil
 }
 
-func MapAsFlatten(reference Structs.GeoCodeReference, data interface{}, separator string) map[string]interface{} {
-    mappedData, err := getDataAsFlattenMap(reference, data, separator)
+func MapAsFlatten(data interface{}, separator string) map[string]interface{} {
+    mappedData, err := getDataAsFlattenMap(data, separator)
     if err != nil {
         logPanicWithStackTrace("Error occurred: " + err.Error())
     }

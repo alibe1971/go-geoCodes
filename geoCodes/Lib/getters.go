@@ -75,7 +75,7 @@ func getXsd(name string) ([]byte, error) {
 }
 
 
-func getDataAsFlattenMap(reference Structs.GeoCodeReference, data interface{}, sep string) (map[string]interface{}, error) {
+func getDataAsFlattenMap(data interface{}, sep string) (map[string]interface{}, error) {
     if data == nil {
         return nil, nil
     }
