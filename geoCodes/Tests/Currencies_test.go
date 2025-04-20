@@ -6,13 +6,14 @@ import (
     "github.com/alibe1971/go-geoCodes/geoCodes"
     "github.com/alibe1971/go-geoCodes/geoCodes/Tests/TestLib"
     "fmt"
+    "math/rand"
 )
 
-var currenciesTotalCount int = 180
+const currenciesTotalCount int = 180
 
-var currenciesPrimaryKey string = "IsoAlpha"
-var currenciesFirstElementOfTheObjectPrimKey string = "AED"
-var currenciesLastElementOfTheObjectPrimKey  string = "ZWL"
+const currenciesPrimaryKey string = "IsoAlpha"
+const currenciesFirstElementOfTheObjectPrimKey string = "AED"
+const currenciesLastElementOfTheObjectPrimKey  string = "ZWL"
 
 func TestCurrencies(t *testing.T) {
     t.Run("TestTheGeoSetsFunctionality", func(t *testing.T) {
@@ -234,6 +235,61 @@ func TestCurrencies(t *testing.T) {
                     "<xs:schema", "The XSD does not contain the <xs:schema> tag, so it may not be valid",
                 )
             })
+
+            t.Run("TestThe:ToFlatten():Endpoint", func(t *testing.T) {
+                list := geoCodes.Currencies().Get()
+                listSlice := list.AsSlice()
+                listFlatten := list.ToFlatten(".")
+                for i := 0; i < 5; i++ {
+                    key := rand.Intn(currenciesTotalCount)
+
+                    assert.Equal(
+                        t,
+                        listSlice[key]["IsoAlpha"],
+                        listFlatten[fmt.Sprintf("%d.IsoAlpha", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `IsoAlpha` for %v)",
+                            listSlice[key]["IsoAlpha"],
+                        ),
+                    )
+                    assert.Equal(
+                        t,
+                        listSlice[key]["IsoNumber"],
+                        listFlatten[fmt.Sprintf("%d.IsoNumber", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `IsoNumber` for %v)",
+                            listSlice[key]["IsoAlpha"],
+                        ),
+                    )
+                    assert.Equal(
+                        t,
+                        listSlice[key]["Name"],
+                        listFlatten[fmt.Sprintf("%d.Name", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `Name` for %v)",
+                            listSlice[key]["IsoAlpha"],
+                        ),
+                    )
+                    assert.Equal(
+                        t,
+                        listSlice[key]["Symbol"],
+                        listFlatten[fmt.Sprintf("%d.Symbol", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `Symbol` for %v)",
+                            listSlice[key]["IsoAlpha"],
+                        ),
+                    )
+                    assert.Equal(
+                        t,
+                        listSlice[key]["Decimal"],
+                        listFlatten[fmt.Sprintf("%d.Decimal", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `Decimal` for %v)",
+                            listSlice[key]["IsoAlpha"],
+                        ),
+                    )
+                }
+            })
         })
 
         t.Run("TestThePackageLanguages", func(t *testing.T) {
@@ -256,26 +312,27 @@ func TestCurrencies(t *testing.T) {
 }
 
 
-func TestElibeCurrencies(t *testing.T) {
-//     currency0 := geoCodes.Currencies().First().AsObj()["Name"]
-//     currency0 := geoCodes.Currencies().Get().AsSlice()[0]
-//     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().AsMap()["EUR"]
-
-//     currency0 := geoCodes.Currencies().First().ToJson()
-//     currency0 := geoCodes.Currencies().Get().ToJson()
-//     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().ToJson()
-
-//     currency0 := geoCodes.Currencies().First().ToYaml()
-//     currency0 := geoCodes.Currencies().Get().ToYaml()
-//     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().ToYaml()
-
-    currency0 := geoCodes.Currencies().First().ToXml()
-//     currency0 := geoCodes.Currencies().Get().ToXml()
-//     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().ToXml()
-
-
-
-//     geoCodes.UseLanguage("it")
-//     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().AsMap()["EUR"]["Name"]
-    fmt.Printf("%v", currency0)
-}
+// func TestElibeCurrencies(t *testing.T) {
+// //     currency0 := geoCodes.Currencies().First().AsObj()["Name"]
+// //     currency0 := geoCodes.Currencies().Get().AsSlice()[0]
+// //     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().AsMap()["EUR"]
+//
+// //     currency0 := geoCodes.Currencies().First().ToJson()
+// //     currency0 := geoCodes.Currencies().Get().ToJson()
+// //     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().ToJson()
+//
+// //     currency0 := geoCodes.Currencies().First().ToYaml()
+// //     currency0 := geoCodes.Currencies().Get().ToYaml()
+// //     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().ToYaml()
+//
+// //     currency0 := geoCodes.Currencies().First().ToXml()
+// //     currency0 := geoCodes.Currencies().Get().ToXml()
+// //     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().ToXml()
+//
+//
+//
+//
+// //     geoCodes.UseLanguage("it")
+// //     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().AsMap()["EUR"]["Name"]
+// //     fmt.Printf("%v", currency0)
+// }

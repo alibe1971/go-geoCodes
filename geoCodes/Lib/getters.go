@@ -74,33 +74,16 @@ func getXsd(name string) ([]byte, error) {
     return xsd, nil
 }
 
+
 func getDataAsFlattenMap(reference Structs.GeoCodeReference, data interface{}, sep string) (map[string]interface{}, error) {
     if data == nil {
         return nil, nil
     }
-    // 1) JSON.Marshal di QUALUNQUE data (struct, map[string]interface{}, slice, ecc.)
-    b, err := json.Marshal(data)
-    if err != nil {
-        return nil, fmt.Errorf("json.Marshal fallita: %w", err)
-    }
-    // 2) JSON.Unmarshal in interface{} per catturare sia oggetti che array
-    var intermediate interface{}
-    if err := json.Unmarshal(b, &intermediate); err != nil {
-        return nil, fmt.Errorf("json.Unmarshal fallita: %w", err)
-    }
-    // 3) a seconda di cosa ottengo, appiattisco la mappa o il slice
     flat := make(map[string]interface{})
-    switch root := intermediate.(type) {
-    case map[string]interface{}:
-        flattenMap("", root, sep, flat)
-    case []interface{}:
-        flattenSlice("", root, sep, flat)
-    default:
-        return nil, fmt.Errorf("tipo root non supportato: %T", root)
-    }
+    v := reflect.ValueOf(data)
+    flattenReflect("", v, sep, flat)
     return flat, nil
 }
-
 
 
 func getDataOnString(reference Structs.GeoCodeReference, data interface{}, method string) (string, error) {
@@ -171,8 +154,6 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
             }
             toStringData = []byte("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + xmlString)
     }
-
-
     if err != nil {
         return "", err
     }
@@ -199,71 +180,6 @@ var processMap = map[string]func(interface{}, []string) map[string]interface{}{
     "currencies": func(item interface{}, selectedFields []string) map[string]interface{} {
         return filterFields(item.(Structs.Currency), selectedFields)
     },
-}
-
-func getGeoCodeData(reference Structs.GeoCodeReference, onlyFirst bool) Structs.GeoCodeResult {
-    var result interface{}
-    orderBy := geocodesMap[reference].SetEnquiries.OrderBy.Property
-    orderDir := geocodesMap[reference].SetEnquiries.OrderBy.OrderType
-    object := geocodesMap[reference].SetObject
-    selectedFields := getSelectedFields(reference)
-
-    if geocodesMap[reference].SetEnquiries.Index != nil {
-        result = make(map[string]map[string]interface{})
-    } else {
-        result = make([]map[string]interface{}, 0)
-    }
-
-    processItem, _ := processMap[geocodesMap[reference].SetType]
-
-    offsetNum := geocodesMap[reference].SetEnquiries.Interval.Offset
-    limitNum := geocodesMap[reference].SetEnquiries.Interval.Limit
-    if onlyFirst {
-        offsetNum = 0
-        limitNum = 1
-    }
-
-    kIn, kOut := 0, 0
-
-    items := make([]interface{}, 0)
-    for _, value := range object {
-        items = append(items, value.(reflect.Value).Interface())
-    }
-
-    collator := collate.New(language.Make(getData("config").(*Structs.Config).Settings.Languages.InPackage[currentLanguage]))
-
-    sort.Slice(items, func(i, j int) bool {
-        return compareItems(items[i], items[j], orderBy, orderDir, collator)
-    })
-
-    for _, item := range items {
-        if kIn < offsetNum {
-            kIn++
-            continue
-        }
-        kOut++
-        if kOut > limitNum {
-            return limitNum
-        }
-
-        parsedItem := processItem(item, selectedFields)
-
-        if onlyFirst {
-            return parsedItem
-        }
-
-        switch res := result.(type) {
-        case map[string]map[string]interface{}:
-            key := reflect.ValueOf(item).FieldByName(*geocodesMap[reference].SetEnquiries.Index).String()
-            res[key] = parsedItem
-        case []map[string]interface{}:
-            result = append(res, parsedItem)
-        }
-
-        kIn++
-    }
-
-    return result
 }
 
 func compareItems(a, b interface{}, orderBy string, direction string, collator *collate.Collator) bool {
@@ -300,3 +216,149 @@ func encodeToXML(data interface{}) (string, error) {
 
 
 /******/
+
+func getGeoCodeData(
+    reference Structs.GeoCodeReference,
+    onlyFirst bool,
+) Structs.GeoCodeResult {
+    // --- 1) Init result (map o slice)
+    var result interface{}
+    rawObject := geocodesMap[reference].SetObject
+    if geocodesMap[reference].SetEnquiries.Index != nil {
+        result = make(map[string]map[string]interface{}, len(rawObject))
+    } else {
+        result = make([]map[string]interface{}, 0, len(rawObject))
+    }
+
+    // --- 2) Estraggo e “unwrapDeep” profondo
+    type entry struct {
+        raw   reflect.Value
+        clean interface{}
+    }
+    entries := make([]entry, 0, len(rawObject))
+    for _, rv := range rawObject {
+        v, ok := rv.(reflect.Value)
+        if !ok {
+            continue
+        }
+        entries = append(entries, entry{
+            raw:   v,
+            clean: unwrapDeepValue(v),
+        })
+    }
+
+    // --- 3) (facoltativo) WHERE su entries[i].clean
+    // ...
+
+    // --- 4) Ordina col collator
+    orderBy  := geocodesMap[reference].SetEnquiries.OrderBy.Property
+    orderDir := geocodesMap[reference].SetEnquiries.OrderBy.OrderType
+    langTag  := language.Make(
+        getData("config").(*Structs.Config).
+            Settings.Languages.InPackage[currentLanguage],
+    )
+    collator := collate.New(langTag)
+    sort.Slice(entries, func(i, j int) bool {
+        return compareItems(
+            entries[i].raw.Interface(),
+            entries[j].raw.Interface(),
+            orderBy, orderDir, collator,
+        )
+    })
+
+    // --- 5) Offset / Limit
+    offset := geocodesMap[reference].SetEnquiries.Interval.Offset
+    limit  := geocodesMap[reference].SetEnquiries.Interval.Limit
+    if onlyFirst {
+        limit = 1
+    }
+
+    // --- 6) Costruisco result da “clean”
+    in, out := 0, 0
+    for _, e := range entries {
+        if in < offset {
+            in++
+            continue
+        }
+        in++; out++
+        if out > limit {
+            break
+        }
+
+        if onlyFirst {
+            return e.clean
+        }
+
+        switch r := result.(type) {
+        case map[string]map[string]interface{}:
+            m, ok := e.clean.(map[string]interface{})
+            if !ok {
+                continue
+            }
+            idxName := *geocodesMap[reference].SetEnquiries.Index
+            key     := e.raw.FieldByName(idxName).String()
+            r[key]  = m
+
+        case []map[string]interface{}:
+            m, ok := e.clean.(map[string]interface{})
+            if !ok {
+                continue
+            }
+            result = append(r, m)
+        }
+    }
+
+    return result
+}
+
+func unwrapDeepValue(v reflect.Value) interface{} {
+    if !v.IsValid() {
+        return nil
+    }
+    // apri Ptr/Interface
+    for v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+        if v.IsNil() {
+            return nil
+        }
+        v = v.Elem()
+    }
+
+    switch v.Kind() {
+    case reflect.Struct:
+        out := make(map[string]interface{}, v.NumField())
+        t := v.Type()
+        for i := 0; i < v.NumField(); i++ {
+            f := t.Field(i)
+            fv := v.Field(i)
+            if fv.CanInterface() {
+                out[f.Name] = unwrapDeepValue(fv)
+            }
+        }
+        return out
+
+    case reflect.Slice, reflect.Array:
+        n := v.Len()
+        arr := make([]interface{}, n)
+        for i := 0; i < n; i++ {
+            arr[i] = unwrapDeepValue(v.Index(i))
+        }
+        return arr
+
+    case reflect.Map:
+        if v.Type().Key().Kind() == reflect.String {
+            out := make(map[string]interface{}, v.Len())
+            for _, key := range v.MapKeys() {
+                out[key.String()] = unwrapDeepValue(v.MapIndex(key))
+            }
+            return out
+        }
+        out2 := make(map[interface{}]interface{}, v.Len())
+        for _, key := range v.MapKeys() {
+            out2[key.Interface()] = unwrapDeepValue(v.MapIndex(key))
+        }
+        return out2
+
+    default:
+        return v.Interface()
+    }
+}

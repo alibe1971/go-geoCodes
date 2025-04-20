@@ -6,6 +6,7 @@ import (
     "github.com/alibe1971/go-geoCodes/geoCodes"
     "github.com/alibe1971/go-geoCodes/geoCodes/Tests/TestLib"
     "fmt"
+    "math/rand"
 )
 
 var geoSetsTotalCount int = 62
@@ -234,6 +235,44 @@ func TestGeoSets(t *testing.T) {
                     "<xs:schema", "The XSD does not contain the <xs:schema> tag, so it may not be valid",
                 )
             })
+
+            t.Run("TestThe:ToFlatten():Endpoint", func(t *testing.T) {
+                list := geoCodes.GeoSets().Get()
+                listSlice := list.AsSlice()
+                listFlatten := list.ToFlatten(".")
+                for i := 0; i < 5; i++ {
+                    key := rand.Intn(geoSetsTotalCount)
+
+                    assert.Equal(
+                        t,
+                        listSlice[key]["InternalCode"],
+                        listFlatten[fmt.Sprintf("%d.InternalCode", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `Alpha2` for %v)",
+                            listSlice[key]["InternalCode"],
+                        ),
+                    )
+                    assert.Equal(
+                        t,
+                        listSlice[key]["UnM49"],
+                        listFlatten[fmt.Sprintf("%d.UnM49", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `UnM49` for %v)",
+                            listSlice[key]["InternalCode"],
+                        ),
+                    )
+                    assert.Equal(
+                        t,
+                        listSlice[key]["Name"],
+                        listFlatten[fmt.Sprintf("%d.Name", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `Name` for %v)",
+                            listSlice[key]["InternalCode"],
+                        ),
+                    )
+                }
+
+            })
         })
 
         t.Run("TestThePackageLanguages", func(t *testing.T) {
@@ -256,26 +295,26 @@ func TestGeoSets(t *testing.T) {
 }
 
 
-func TestElibeGeoSets(t *testing.T) {
-//     geoSet0 := geoCodes.GeoSets().First().AsObj()["Name"]
-//     geoSet0 := geoCodes.GeoSets().Get().AsSlice()[0]
-//     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().AsMap()["ORGS-EU"]
-
-//     geoSet0 := geoCodes.GeoSets().First().ToJson()
-//     geoSet0 := geoCodes.GeoSets().Get().ToJson()
-//     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().ToJson()
-
-//     geoSet0 := geoCodes.GeoSets().First().ToYaml()
-//     geoSet0 := geoCodes.GeoSets().Get().ToYaml()
-//     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().ToYaml()
-
-    geoSet0 := geoCodes.GeoSets().First().ToXml()
-//     geoSet0 := geoCodes.GeoSets().Get().ToXml()
-//     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().ToXml()
-
-
-
-//     geoCodes.UseLanguage("it")
-//     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().AsMap()["ORGS-EU"]["Name"]
-    fmt.Printf("%v", geoSet0)
-}
+// func TestElibeGeoSets(t *testing.T) {
+// //     geoSet0 := geoCodes.GeoSets().First().AsObj()["Name"]
+// //     geoSet0 := geoCodes.GeoSets().Get().AsSlice()[0]
+// //     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().AsMap()["ORGS-EU"]
+//
+// //     geoSet0 := geoCodes.GeoSets().First().ToJson()
+// //     geoSet0 := geoCodes.GeoSets().Get().ToJson()
+// //     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().ToJson()
+//
+// //     geoSet0 := geoCodes.GeoSets().First().ToYaml()
+// //     geoSet0 := geoCodes.GeoSets().Get().ToYaml()
+// //     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().ToYaml()
+//
+// //     geoSet0 := geoCodes.GeoSets().First().ToXml()
+// //     geoSet0 := geoCodes.GeoSets().Get().ToXml()
+// //     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().ToXml()
+//
+//
+//
+// //     geoCodes.UseLanguage("it")
+// //     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().AsMap()["ORGS-EU"]["Name"]
+// //     fmt.Printf("%v", geoSet0)
+// }

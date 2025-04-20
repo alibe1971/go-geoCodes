@@ -6,15 +6,16 @@ import (
     "github.com/alibe1971/go-geoCodes/geoCodes"
     "github.com/alibe1971/go-geoCodes/geoCodes/Tests/TestLib"
     "fmt"
+    "math/rand"
 )
 
 // var Countries = geoCodes.Countries()
 
-var countriesTotalCount int = 250
+const countriesTotalCount int = 250
 
-var countriesPrimaryKey string = "Alpha2"
-var countriesFirstElementOfTheObjectPrimKey string = "AD"
-var lastElementOfTheObjectPrimKey  string = "ZW"
+const countriesPrimaryKey string = "Alpha2"
+const countriesFirstElementOfTheObjectPrimKey string = "AD"
+const lastElementOfTheObjectPrimKey  string = "ZW"
 
 func TestCountries(t *testing.T) {
     t.Run("TestTheCountriesFunctionality", func(t *testing.T) {
@@ -236,6 +237,61 @@ func TestCountries(t *testing.T) {
                     "<xs:schema", "The XSD does not contain the <xs:schema> tag, so it may not be valid",
                 )
             })
+
+            t.Run("TestThe:ToFlatten():Endpoint", func(t *testing.T) {
+                list := geoCodes.Countries().Get()
+                listSlice := list.AsSlice()
+                listFlatten := list.ToFlatten(".")
+                for i := 0; i < 5; i++ {
+                    key := rand.Intn(countriesTotalCount)
+
+                    assert.Equal(
+                        t,
+                        listSlice[key]["Alpha2"],
+                        listFlatten[fmt.Sprintf("%d.Alpha2", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `Alpha2` for %v)",
+                            listSlice[key]["Alpha2"],
+                        ),
+                    )
+                    assert.Equal(
+                        t,
+                        listSlice[key]["Alpha3"],
+                        listFlatten[fmt.Sprintf("%d.Alpha3", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `Alpha3` for %v)",
+                            listSlice[key]["Alpha2"],
+                        ),
+                    )
+                    assert.Equal(
+                        t,
+                        listSlice[key]["UnM49"],
+                        listFlatten[fmt.Sprintf("%d.UnM49", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `UnM49` for %v)",
+                            listSlice[key]["Alpha2"],
+                        ),
+                    )
+                    assert.Equal(
+                        t,
+                        listSlice[key]["Name"],
+                        listFlatten[fmt.Sprintf("%d.Name", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `Name` for %v)",
+                            listSlice[key]["Alpha2"],
+                        ),
+                    )
+                    assert.Equal(
+                        t,
+                        listSlice[key]["Dependency"],
+                        listFlatten[fmt.Sprintf("%d.Dependency", key)],
+                        fmt.Sprintf(
+                            "The flatten structure does not work (issue on `Dependency` for %v)",
+                            listSlice[key]["Alpha2"],
+                        ),
+                    )
+                }
+            })
         })
 
         t.Run("TestThePackageLanguages", func(t *testing.T) {
@@ -258,36 +314,59 @@ func TestCountries(t *testing.T) {
 }
 
 
-func TestElibeCountries(t *testing.T) {
-
-//     country0 := geoCodes.Countries().First().AsObj()["Name"]
-//     country0 := geoCodes.Countries().Get().AsSlice()[0]
-//     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().AsMap()["ORGS-EU"]
-
-//     country0 := geoCodes.Countries().First().ToJson()
-//     country0 := geoCodes.Countries().Get().ToJson()
-//     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().ToJson()
-
-//     country0 := geoCodes.Countries().First().ToYaml()
-//     country0 := geoCodes.Countries().Get().ToYaml()
-//     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().ToYaml()
-
-    country0 := geoCodes.Countries().First().ToXml()
-//     country0 := geoCodes.Countries().Get().ToXml()
-//     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().ToXml()
-
-
-//     geoCodes.UseLanguage("it")
-//     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().AsMap()["IE"]["FullName"]
-    fmt.Printf("%v", country0)
-
-
-
-//     TestLib.WriteDataToFile("\n")
-//     geoset0 := geoCodes.GeoSets()
-//     TestLib.WriteDataToFile(geoset0)
+// func TestElibeCountries(t *testing.T) {
 //
-//     currency0 := geoCodes.Currencies()
-//     TestLib.WriteDataToFile(currency0)
-
-}
+// //     country0 := geoCodes.Countries().First().AsObj()
+// //     country0 := geoCodes.Countries().Get().AsSlice()[0]
+// //     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().AsMap()["ORGS-EU"]
+//
+// //     country0 := geoCodes.Countries().First().ToJson()
+// //     country0 := geoCodes.Countries().Get().ToJson()
+// //     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().ToJson()
+//
+// //     country0 := geoCodes.Countries().First().ToYaml()
+// //     country0 := geoCodes.Countries().Get().ToYaml()
+// //     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().ToYaml()
+//
+// //     country0 := geoCodes.Countries().First().ToXml()
+// //     country0 := geoCodes.Countries().Get().ToXml()
+// //     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().ToXml()
+//
+// //     country0 := geoCodes.Countries().First().AsFlatten("_")
+// //     country0 := geoCodes.Countries().Get().AsFlatten("_")
+// //     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().AsFlatten("_")
+//
+//
+// //     geoCodes.UseLanguage("it")
+// //     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().AsMap()["IE"]["FullName"]
+//
+//
+// //     country0 := geoCodes.Countries().First().Pick("Alpha2")
+// //     country0 := geoCodes.Countries().First().Pick("Alpha3")
+// //     country0 := geoCodes.Countries().First().Pick("UnM49")
+// //     country0 := geoCodes.Countries().First().Pick("Name")
+// //     country0 := geoCodes.Countries().First().Pick("FullName")
+// //     country0 := geoCodes.Countries().First().Pick("OfficialName")
+// //     country0 := geoCodes.Countries().First().Pick("Flags")
+// //     country0 := geoCodes.Countries().First().Pick("Dependency")
+// //     country0 := geoCodes.Countries().First().Pick("Mottos")
+// //     country0 := geoCodes.Countries().First().Pick("Currencies")
+// //     country0 := geoCodes.Countries().First().Pick("DialCodes.Main.0")
+// //     country0 := geoCodes.Countries().First().Pick("CcTld")
+// //     country0 := geoCodes.Countries().First().Pick("TimeZones")
+// //     country0 := geoCodes.Countries().First().Pick("Languages")
+// //     country0 := geoCodes.Countries().First().Pick("Locales")
+// //     country0 := geoCodes.Countries().First().Pick("OtherAppsIds")
+//
+// //     fmt.Printf("%v\n", country0)
+//
+//
+//
+//     TestLib.WriteDataToFile("\n")
+// //     geoset0 := geoCodes.GeoSets()
+// //     TestLib.WriteDataToFile(country0)
+// //
+// //     currency0 := geoCodes.Currencies()
+// //     TestLib.WriteDataToFile(currency0)
+//
+// }

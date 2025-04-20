@@ -129,7 +129,7 @@ func (gcr *geoCodeResult) AsSlice() ([]map[string]interface{}) {
     }
     return nil
 }
-func (gcr *geoCodeResult) AsFlatten(sep string) (map[string]interface{}) {
+func (gcr *geoCodeResult) ToFlatten(sep string) (map[string]interface{}) {
     return lib.MapAsFlatten(gcr.Reference, gcr.Data, sep)
 }
 

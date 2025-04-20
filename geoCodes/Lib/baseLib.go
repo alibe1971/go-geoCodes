@@ -213,41 +213,6 @@ func reverseStackTrace(trace string) string {
 }
 
 /********/
-func flattenMap(prefix string, m map[string]interface{}, sep string, out map[string]interface{}) {
-    for k, v := range m {
-        key := k
-        if prefix != "" {
-            key = prefix + sep + key
-        }
-        switch vv := v.(type) {
-        case map[string]interface{}:
-            flattenMap(key, vv, sep, out)
-        case []interface{}:
-            flattenSlice(key, vv, sep, out)
-        default:
-            out[key] = vv
-        }
-    }
-}
-
-func flattenSlice(prefix string, s []interface{}, sep string, out map[string]interface{}) {
-    for i, v := range s {
-        key := toString(i) //fmt.Sprintf("%d", i)
-        if prefix != "" {
-            key = prefix + sep + key
-        }
-        switch vv := v.(type) {
-        case map[string]interface{}:
-            flattenMap(key, vv, sep, out)
-        case []interface{}:
-            flattenSlice(key, vv, sep, out)
-        default:
-            out[key] = vv
-        }
-    }
-}
-
-/********/
 
 func LowerCamelCaseKeys(data interface{}) interface{} {
 	switch v := data.(type) {
@@ -658,4 +623,71 @@ func shouldConvertToMapStringString(mapping Structs.XmlFieldMapping) bool {
         }
     }
     return false
+}
+
+
+/******/
+
+// flattenReflect è la funzione ricorsiva:
+// – “apre” pointer e interface
+// – per Struct va sui campi esportati
+// – per Map/Slice/Array itera
+// – altrimenti scrive il valore terminale
+func flattenReflect(prefix string, v reflect.Value, sep string, out map[string]interface{}) {
+    // srotola Ptr e Interface
+    for v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+        if v.IsNil() {
+            // nil pointer/interface → nil terminale
+            out[prefix] = nil
+            return
+        }
+        v = v.Elem()
+    }
+
+    switch v.Kind() {
+    case reflect.Struct:
+        t := v.Type()
+        for i := 0; i < v.NumField(); i++ {
+            field := t.Field(i)
+            if !field.IsExported() {
+                continue
+            }
+            fv := v.Field(i)
+            key := field.Name
+            if prefix != "" {
+                key = prefix + sep + key
+            }
+            flattenReflect(key, fv, sep, out)
+        }
+
+    case reflect.Map:
+        // solo chiavi stringhe; altrimenti le ignoro
+        if v.Type().Key().Kind() != reflect.String {
+            return
+        }
+        for _, k := range v.MapKeys() {
+            strKey := k.String()
+            val := v.MapIndex(k)
+            key := strKey
+            if prefix != "" {
+                key = prefix + sep + strKey
+            }
+            flattenReflect(key, val, sep, out)
+        }
+
+    case reflect.Slice, reflect.Array:
+        for i := 0; i < v.Len(); i++ {
+            elem := v.Index(i)
+            idx := strconv.Itoa(i)
+            key := idx
+            if prefix != "" {
+                key = prefix + sep + idx
+            }
+            flattenReflect(key, elem, sep, out)
+        }
+
+    default:
+        // tipi base: mantengono perfettamente int64, float64, string, bool, ecc.
+        out[prefix] = v.Interface()
+    }
 }
