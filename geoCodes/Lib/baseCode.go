@@ -82,10 +82,18 @@ func OutPutObject(reference Structs.GeoCodeReference, method string) interface{}
 	return nil
 }
 
+func PickPropertyValue(data interface{}, path string) interface{} {
+    propValue, err := pickPropertyValueFromPath(data, path)
+    if err != nil {
+        logPanicWithStackTrace(err.Error())
+    }
+    return propValue
+}
+
 func MapAsFlatten(data interface{}, separator string) map[string]interface{} {
     mappedData, err := getDataAsFlattenMap(data, separator)
     if err != nil {
-        logPanicWithStackTrace("Error occurred: " + err.Error())
+        logPanicWithStackTrace(err.Error())
     }
     return mappedData
 }
@@ -94,7 +102,7 @@ func MapAsFlatten(data interface{}, separator string) map[string]interface{} {
 func OutPutString(reference Structs.GeoCodeReference, data interface{}, method string) string {
     toStringData, err := getDataOnString(reference, data, method)
     if err != nil {
-        logPanicWithStackTrace("Error occurred: " + err.Error())
+        logPanicWithStackTrace(err.Error())
     }
     return toStringData
 }

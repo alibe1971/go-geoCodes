@@ -370,3 +370,14 @@ func unwrapDeepValue(v reflect.Value) interface{} {
         return v.Interface()
     }
 }
+
+
+
+func pickPropertyValueFromPath(data interface{}, path string) (interface{}, error)  {
+    root := normalizeDataForPick(data)
+    parts := strings.Split(path, ".")
+    if value, ok := getPathValue(root, parts); ok {
+        return value, nil
+    }
+    return "", fmt.Errorf("Path %q not found", path)
+}

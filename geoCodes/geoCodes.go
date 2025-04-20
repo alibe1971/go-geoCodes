@@ -86,10 +86,6 @@ func (gc *geoCode) First() *geoCodeResult {
     }
 }
 
-func (gc *geoCode) Length() int {
-    return gc.Count()
-}
-
 func (gc *geoCode) Count() int {
     data := lib.OutPutObject(gc.Reference, "get")
     switch v := data.(type) {
@@ -101,6 +97,7 @@ func (gc *geoCode) Count() int {
             return 0
     }
 }
+func (gc *geoCode) Length() int { return gc.Count() }
 
 func (gc *geoCode) GetXsd() string {
     return lib.OutPutString(gc.Reference, nil, "xsd")
@@ -129,11 +126,15 @@ func (gcr *geoCodeResult) AsSlice() ([]map[string]interface{}) {
     }
     return nil
 }
-func (gcr *geoCodeResult) ToFlatten(sep string) (map[string]interface{}) {
-    return lib.MapAsFlatten(gcr.Reference, gcr.Data, sep)
+
+// Pick and alias
+func (gcr *geoCodeResult) Pick(path string) interface{} {
+    return lib.PickPropertyValue(gcr.Data, path)
 }
-
-
+func (gcr *geoCodeResult) Val(path string) interface{}    { return gcr.Pick(path) }
+func (gcr *geoCodeResult) Value(path string) interface{}  { return gcr.Pick(path) }
+func (gcr *geoCodeResult) At(path string) interface{}     { return gcr.Pick(path) }
+func (gcr *geoCodeResult) Lookup(path string) interface{} { return gcr.Pick(path) }
 
 func (gcr *geoCodeResult) ToJson() (string) {
     return lib.OutPutString(gcr.Reference, gcr.Data, "json")
@@ -145,6 +146,10 @@ func (gcr *geoCodeResult) ToXml() (string) {
 
 func (gcr *geoCodeResult) ToYaml() (string) {
     return lib.OutPutString(gcr.Reference, gcr.Data, "yaml")
+}
+
+func (gcr *geoCodeResult) ToFlatten(sep string) (map[string]interface{}) {
+    return lib.MapAsFlatten(gcr.Data, sep)
 }
 
 /******************
@@ -168,16 +173,6 @@ func (gc *geoCode) OrderBy(property string, orderType string) *geoCode {
     lib.Setters(gc.Reference, "orderBy", property, orderType)
     return gc
 }
-// func (gc *geoCode) OrderBy(property string, orderType ...string) *geoCode {
-//     var orderTypeV string
-//     if len(orderType) == 0 {
-//         orderTypeV = ""
-//     } else {
-//         orderTypeV = orderType[0]
-//     }
-//     lib.Setters(gc.Reference, "orderBy", property, orderTypeV)
-//     return gc
-// }
 
 func (gc *geoCode) Offset(offset int) *geoCode {
     lib.Setters(gc.Reference, "offset", offset)

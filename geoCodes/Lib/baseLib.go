@@ -691,3 +691,61 @@ func flattenReflect(prefix string, v reflect.Value, sep string, out map[string]i
         out[prefix] = v.Interface()
     }
 }
+
+
+/******/
+
+// normalizeForPick trasforma tutte le possibili varianti di Data
+// in map[string]interface{} o []interface{} pronte per l’indexing.
+func normalizeDataForPick(data interface{}) interface{} {
+    switch t := data.(type) {
+    case map[string]interface{}:
+        return t
+    case map[string]map[string]interface{}:
+        m := make(map[string]interface{}, len(t))
+        for k, v := range t {
+            m[k] = v
+        }
+        return m
+    case []map[string]interface{}:
+        s := make([]interface{}, len(t))
+        for i, v := range t {
+            s[i] = v
+        }
+        return s
+    default:
+        // già []interface{}, primitive, o strutture personalizzate
+        return data
+    }
+}
+
+// getPathValue scende ricorsivamente lungo la slice di chiavi/index
+// e gestisce map[string]interface{} e []interface{}.
+func getPathValue(current interface{}, parts []string) (interface{}, bool) {
+    if len(parts) == 0 {
+        return current, true
+    }
+    head, tail := parts[0], parts[1:]
+    switch node := current.(type) {
+    case map[string]interface{}:
+        v, ok := node[head]
+        if !ok {
+            return nil, false
+        }
+        return getPathValue(v, tail)
+
+    case []interface{}:
+        idx, err := strconv.Atoi(head)
+        if err != nil || idx < 0 || idx >= len(node) {
+            return nil, false
+        }
+        return getPathValue(node[idx], tail)
+
+    default:
+        // se non è un container, solo tail vuota ci permette di tornare il valore
+        if len(tail) == 0 {
+            return current, true
+        }
+        return nil, false
+    }
+}
