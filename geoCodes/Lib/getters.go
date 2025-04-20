@@ -124,7 +124,15 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
         case "xsdSingle":
             toStringData, err = getXsd(itemTag)
         case "json":
-            toStringData, err = json.MarshalIndent(data, "", "  ")
+//             toStringData, err = json.MarshalIndent(data, "", "  ")
+            var buf bytes.Buffer
+            enc := json.NewEncoder(&buf)
+            enc.SetEscapeHTML(false)       // <<--- disabilita l’escaping di <, >, &
+            enc.SetIndent("", "  ")
+            if err = enc.Encode(data); err != nil {
+                return "", err
+            }
+            toStringData = buf.Bytes()
         case "yaml":
             outerMap := map[string]interface{}{
                 instanceTag: data,
