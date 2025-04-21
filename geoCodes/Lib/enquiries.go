@@ -30,7 +30,10 @@ func setOrderBy(settings Structs.SettingsType, reference Structs.GeoCodeReferenc
         orderType = "ASC"
     }
     if !isInSlice([]string{"ASC", "DESC"}, orderType) {
-        logPanicWithStackTrace("Attribute `orderBy`.`property` must be `ASC` (default if empty string - ``) or `DESC` (case insensitive). `" + orderType + "` isn't valid")
+        logPanicWithStackTrace(
+            "Attribute `orderBy`.`direction` must be `ASC` (default if empty string - ``) or `DESC` " +
+            "(case insensitive). `" + orderType + "` isn't valid",
+        )
     }
     geocodesMap[reference].SetEnquiries.OrderBy.Property = props[0]
     geocodesMap[reference].SetEnquiries.OrderBy.OrderType = orderType
