@@ -163,17 +163,29 @@ func TestCurrencies(t *testing.T) {
             })
         })
 
-        t.Run("TestThe`.Pick()`aliases", func(t *testing.T) {
-            currency := geoCodes.Currencies().First()
-            pick := currency.Pick(currenciesPrimaryKey)
-            val := currency.Val(currenciesPrimaryKey)
-            value := currency.Value(currenciesPrimaryKey)
-            lookup := currency.Lookup(currenciesPrimaryKey)
-            assert.True(
-                t,
-                pick == val && val == value && value == lookup && lookup == currenciesFirstElementOfTheObjectPrimKey,
-                "Wrong Type",
-            )
+        t.Run("TestThe`.Pick()`Features", func(t *testing.T) {
+            t.Run("TestThe`.Pick()`Aliases", func(t *testing.T) {
+                currency := geoCodes.Currencies().First()
+                pick := currency.Pick(currenciesPrimaryKey)
+                val := currency.Val(currenciesPrimaryKey)
+                value := currency.Value(currenciesPrimaryKey)
+                lookup := currency.Lookup(currenciesPrimaryKey)
+                assert.True(
+                    t,
+                    pick == val && val == value && value == lookup && lookup == currenciesFirstElementOfTheObjectPrimKey,
+                    "Wrong Type",
+                )
+            })
+            t.Run("TestTheBehaviorOf`.Pick()`WithWrongProperty", func(t *testing.T) {
+                defer func() {
+                    if r := recover(); r != nil {
+                      assert.Contains(t, r.(string), "not found")
+                      return
+                    }
+                    t.Error("Expected panic, but no panic occurred")
+                }()
+                geoCodes.Currencies().First().Pick("NotExistentPropertyName")
+            })
         })
 
         t.Run("TestTheStringEndpoints", func(t *testing.T) {
@@ -298,6 +310,14 @@ func TestCurrencies(t *testing.T) {
                         ),
                     )
                 }
+
+                t.Run("TestTheBehaviorOf`.ToFlatten()`WithWrongProperty", func(t *testing.T) {
+                    assert.Nil(
+                        t,
+                        geoCodes.Currencies().First().ToFlatten(".")["NotExistentPropertyName"],
+                        "The value must be `nil`",
+                    )
+                })
             })
         })
 

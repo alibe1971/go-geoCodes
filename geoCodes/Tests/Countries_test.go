@@ -604,17 +604,30 @@ func TestCountries(t *testing.T) {
             })
         })
 
-        t.Run("TestThe`.Pick()`aliases", func(t *testing.T) {
-            country := geoCodes.Countries().First()
-            pick := country.Pick(countriesPrimaryKey)
-            val := country.Val(countriesPrimaryKey)
-            value := country.Value(countriesPrimaryKey)
-            lookup := country.Lookup(countriesPrimaryKey)
-            assert.True(
-                t,
-                pick == val && val == value && value == lookup && lookup == countriesFirstElementOfTheObjectPrimKey,
-                "Wrong Type",
-            )
+        t.Run("TestThe`.Pick()`Features", func(t *testing.T) {
+            t.Run("TestThe`.Pick()`Aliases", func(t *testing.T) {
+                country := geoCodes.Countries().First()
+                pick := country.Pick(countriesPrimaryKey)
+                val := country.Val(countriesPrimaryKey)
+                value := country.Value(countriesPrimaryKey)
+                lookup := country.Lookup(countriesPrimaryKey)
+                assert.True(
+                    t,
+                    pick == val && val == value && value == lookup && lookup == countriesFirstElementOfTheObjectPrimKey,
+                    "Wrong Type",
+                )
+            })
+
+            t.Run("TestTheBehaviorOf`.Pick()`WithWrongProperty", func(t *testing.T) {
+                defer func() {
+                    if r := recover(); r != nil {
+                      assert.Contains(t, r.(string), "not found")
+                      return
+                    }
+                    t.Error("Expected panic, but no panic occurred")
+                }()
+                geoCodes.Countries().First().Pick("NotExistentPropertyName")
+            })
         })
 
         t.Run("TestTheStringEndpoints", func(t *testing.T) {
@@ -739,6 +752,14 @@ func TestCountries(t *testing.T) {
                         ),
                     )
                 }
+
+                t.Run("TestTheBehaviorOf`.ToFlatten()`WithWrongProperty", func(t *testing.T) {
+                    assert.Nil(
+                        t,
+                        geoCodes.Countries().First().ToFlatten(".")["NotExistentPropertyName"],
+                        "The value must be `nil`",
+                    )
+                })
             })
         })
 
@@ -763,56 +784,9 @@ func TestCountries(t *testing.T) {
 
 
 // func TestElibeCountries(t *testing.T) {
-//
-//
-// //     country0 := geoCodes.Countries().First().ToJson()
-// //     country0 := geoCodes.Countries().Get().ToJson()
-// //     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().ToJson()
-//
-// //     country0 := geoCodes.Countries().First().ToYaml()
-// //     country0 := geoCodes.Countries().Get().ToYaml()
-// //     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().ToYaml()
-//
-// //     country0 := geoCodes.Countries().First().ToXml()
-// //     country0 := geoCodes.Countries().Get().ToXml()
-// //     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().ToXml()
-//
-// //     country0 := geoCodes.Countries().First().AsFlatten("_")
-// //     country0 := geoCodes.Countries().Get().AsFlatten("_")
-// //     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().AsFlatten("_")
-//
-//
-// //     geoCodes.UseLanguage("it")
-//
-//
-// //     country0 := geoCodes.Countries().First().Lookup("Alpha2")
-// //     country0 := geoCodes.Countries().First().Pick("Alpha3")
-// //     country0 := geoCodes.Countries().First().Pick("UnM49")
-// //     country0 := geoCodes.Countries().First().Pick("Name")
-// //     country0 := geoCodes.Countries().First().Pick("FullName")
-// //     country0 := geoCodes.Countries().First().Pick("OfficialName")
-// //     country0 := geoCodes.Countries().First().Pick("Flags")
-// //     country0 := geoCodes.Countries().First().Pick("Dependency")
-// //     country0 := geoCodes.Countries().First().Pick("Mottos")
-// //     country0 := geoCodes.Countries().First().Pick("Currencies")
-// //     country0 := geoCodes.Countries().First().Pick("DialCodes.Main.0")
-// //     country0 := geoCodes.Countries().First().Pick("CcTld")
-// //     country0 := geoCodes.Countries().First().Pick("TimeZones")
-// //     country0 := geoCodes.Countries().First().Pick("Languages")
-// //     country0 := geoCodes.Countries().First().Pick("Locales")
-// //     country0 := geoCodes.Countries().First().Pick("OtherAppsIds")
-//
-// country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().Pick("AR.OfficialName")
-//
-//     fmt.Printf("%v\n", country0)
-//
-//
-//
+// //     country0 := geoCodes.Countries().First().Pick("FullNameWrong")
+// //     country0 := geoCodes.Countries().First().ToFlatten(".")["FullNameWrong"]
+// //     fmt.Printf("%v\n", country0)
 //     TestLib.WriteDataToFile("\n")
-// //     geoset0 := geoCodes.GeoSets()
-// //     TestLib.WriteDataToFile(country0)
-// //
-// //     currency0 := geoCodes.Currencies()
-// //     TestLib.WriteDataToFile(currency0)
 //
 // }

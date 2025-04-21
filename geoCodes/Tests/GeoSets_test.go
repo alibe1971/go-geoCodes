@@ -200,17 +200,29 @@ func TestGeoSets(t *testing.T) {
             })
         })
 
-        t.Run("TestThe`.Pick()`aliases", func(t *testing.T) {
-            geoSet := geoCodes.GeoSets().First()
-            pick := geoSet.Pick(geoSetsPrimaryKey)
-            val := geoSet.Val(geoSetsPrimaryKey)
-            value := geoSet.Value(geoSetsPrimaryKey)
-            lookup := geoSet.Lookup(geoSetsPrimaryKey)
-            assert.True(
-                t,
-                pick == val && val == value && value == lookup && lookup == geoSetsFirstElementOfTheObjectPrimKey,
-                "Wrong Type",
-            )
+        t.Run("TestThe`.Pick()`Features", func(t *testing.T) {
+            t.Run("TestThe`.Pick()`Aliases", func(t *testing.T) {
+                geoSet := geoCodes.GeoSets().First()
+                pick := geoSet.Pick(geoSetsPrimaryKey)
+                val := geoSet.Val(geoSetsPrimaryKey)
+                value := geoSet.Value(geoSetsPrimaryKey)
+                lookup := geoSet.Lookup(geoSetsPrimaryKey)
+                assert.True(
+                    t,
+                    pick == val && val == value && value == lookup && lookup == geoSetsFirstElementOfTheObjectPrimKey,
+                    "Wrong Type",
+                )
+            })
+            t.Run("TestTheBehaviorOf`.Pick()`WithWrongProperty", func(t *testing.T) {
+                defer func() {
+                    if r := recover(); r != nil {
+                      assert.Contains(t, r.(string), "not found")
+                      return
+                    }
+                    t.Error("Expected panic, but no panic occurred")
+                }()
+                geoCodes.GeoSets().First().Pick("NotExistentPropertyName")
+            })
         })
 
         t.Run("TestTheStringEndpoints", func(t *testing.T) {
@@ -317,7 +329,13 @@ func TestGeoSets(t *testing.T) {
                         ),
                     )
                 }
-
+                t.Run("TestTheBehaviorOf`.ToFlatten()`WithWrongProperty", func(t *testing.T) {
+                    assert.Nil(
+                        t,
+                        geoCodes.GeoSets().First().ToFlatten(".")["NotExistentPropertyName"],
+                        "The value must be `nil`",
+                    )
+                })
             })
         })
 
