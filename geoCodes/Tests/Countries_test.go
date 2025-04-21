@@ -12,10 +12,12 @@ import (
 // var Countries = geoCodes.Countries()
 
 const countriesTotalCount int = 250
-
 const countriesPrimaryKey string = "Alpha2"
-const countriesFirstElementOfTheObjectPrimKey string = "AD"
-const lastElementOfTheObjectPrimKey  string = "ZW"
+var countriesGlobalObject = map[string]string{
+    "firstElement": "AD",
+    "lastElement":  "ZW",
+}
+
 
 func TestCountries(t *testing.T) {
     t.Run("TestTheCountriesFunctionalities", func(t *testing.T) {
@@ -613,7 +615,7 @@ func TestCountries(t *testing.T) {
                 lookup := country.Lookup(countriesPrimaryKey)
                 assert.True(
                     t,
-                    pick == val && val == value && value == lookup && lookup == countriesFirstElementOfTheObjectPrimKey,
+                    pick == val && val == value && value == lookup && lookup == countriesGlobalObject["firstElement"],
                     "Wrong Type",
                 )
             })

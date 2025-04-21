@@ -10,10 +10,11 @@ import (
 )
 
 const currenciesTotalCount int = 180
-
 const currenciesPrimaryKey string = "IsoAlpha"
-const currenciesFirstElementOfTheObjectPrimKey string = "AED"
-const currenciesLastElementOfTheObjectPrimKey  string = "ZWL"
+var currenciesGlobalObject = map[string]string{
+    "firstElement": "AED",
+    "lastElement":  "ZWL",
+}
 
 func TestCurrencies(t *testing.T) {
     t.Run("TestTheCurrenciesFunctionalities", func(t *testing.T) {
@@ -172,7 +173,7 @@ func TestCurrencies(t *testing.T) {
                 lookup := currency.Lookup(currenciesPrimaryKey)
                 assert.True(
                     t,
-                    pick == val && val == value && value == lookup && lookup == currenciesFirstElementOfTheObjectPrimKey,
+                    pick == val && val == value && value == lookup && lookup == currenciesGlobalObject["firstElement"],
                     "Wrong Type",
                 )
             })

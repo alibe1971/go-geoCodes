@@ -9,11 +9,12 @@ import (
     "math/rand"
 )
 
-var geoSetsTotalCount int = 62
-
-var geoSetsPrimaryKey string = "InternalCode"
-var geoSetsFirstElementOfTheObjectPrimKey string = "CONV-G20"
-var geoSetsLastElementOfTheObjectPrimKey  string = "ZONE-EZ"
+const geoSetsTotalCount int = 62
+const geoSetsPrimaryKey string = "InternalCode"
+var geoSetsGlobalObject = map[string]string{
+    "firstElement": "CONV-G20",
+    "lastElement":  "ZONE-EZ",
+}
 
 func TestGeoSets(t *testing.T) {
     t.Run("TestTheGeoSetsFunctionalities", func(t *testing.T) {
@@ -209,7 +210,7 @@ func TestGeoSets(t *testing.T) {
                 lookup := geoSet.Lookup(geoSetsPrimaryKey)
                 assert.True(
                     t,
-                    pick == val && val == value && value == lookup && lookup == geoSetsFirstElementOfTheObjectPrimKey,
+                    pick == val && val == value && value == lookup && lookup == geoSetsGlobalObject["firstElement"],
                     "Wrong Type",
                 )
             })
