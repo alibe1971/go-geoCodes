@@ -16,157 +16,205 @@ var geoSetsFirstElementOfTheObjectPrimKey string = "CONV-G20"
 var geoSetsLastElementOfTheObjectPrimKey  string = "ZONE-EZ"
 
 func TestGeoSets(t *testing.T) {
-    t.Run("TestTheGeoSetsFunctionality", func(t *testing.T) {
+    t.Run("TestTheGeoSetsFunctionalities", func(t *testing.T) {
         t.Run("CheckTheGeoSetsObjectIsCorrectlyInstantiated", func(t *testing.T) {
             assert.NotNil(t, geoCodes.GeoSets(), "The object `GeoSets` cannot be `nil`")
             t.Run("CheckTheGeoSetsObjectHasTheCorrectNumberOfElements", func(t *testing.T) {
                 // Check with the alias commands
                 lengthObj := geoCodes.GeoSets().Length()
                 countObj  := geoCodes.GeoSets().Count()
-                assert.Equal(t, countObj, lengthObj, "The methods Length() e Count() do not seem to be alias")
-                assert.Equal(
+                assert.True(
                     t,
-                    countObj,
-                    geoSetsTotalCount,
+                    countObj == lengthObj && lengthObj == geoSetsTotalCount,
                     "The number of the elements in the object must be " + fmt.Sprint(geoSetsTotalCount),
                 )
             })
         })
 
-        t.Run("CheckTheGeoSetsAsListOfElements:Get()", func(t *testing.T) {
+        t.Run("CheckTheGeoSetsAsListOfElements:`.Get()`", func(t *testing.T) {
             t.Run("CheckTheGeoSetsAsSliceListOfElements", func(t *testing.T) {
-                t.Run("CheckTheGeoSetsListWithStructureDeclaration", func(t *testing.T) {
-                    geoSet := geoCodes.GeoSets().Get().Data.([]map[string]interface{})[0]
-                    assert.Equal(
-                        t,
-                        geoSet[geoSetsPrimaryKey],
-                        geoSetsFirstElementOfTheObjectPrimKey,
-                        fmt.Sprintf("The first element of the object (%v) does not match the expected one (%v)",
-                            geoSet[geoSetsPrimaryKey],
-                            geoSetsFirstElementOfTheObjectPrimKey,
-                        ),
-                    )
-                })
-
-                t.Run("TestTheGeoSetsListAsSliceWithDirectCommand:AsSlice()", func(t *testing.T) {
-                    geoSet := geoCodes.GeoSets().Get().AsSlice()[0]
-                    assert.Equal(
-                        t,
-                        geoSet[geoSetsPrimaryKey],
-                        geoSetsFirstElementOfTheObjectPrimKey,
-                        fmt.Sprintf("The first element of the object (%v) does not match the expected one (%v)",
-                            geoSet[geoSetsPrimaryKey],
-                            geoSetsFirstElementOfTheObjectPrimKey,
-                        ),
-                    )
-                })
+                geoSets := geoCodes.GeoSets().Get()
+                //** Let's work on the first element **//
+                geoSetTypeAssertion := geoSets.Data.([]map[string]interface{})[0]
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["Name"],
+                    geoSets.Pick("0.Name"),
+                    "Wrong match for `Name`",
+                )
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["InternalCode"],
+                    geoSets.Pick("0.InternalCode"),
+                    "Wrong match for `InternalCode`",
+                )
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["UnM49"],
+                    geoSets.Pick("0.UnM49"),
+                    "Wrong match for `UnM49`",
+                )
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["Tags"],
+                    geoSets.Pick("0.Tags"),
+                    "Wrong match for `Tags`",
+                )
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["Tags"].([]interface{})[0],
+                    geoSets.Pick("0.Tags.0"),
+                    "Wrong match for `Tags.0`",
+                )
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["CountryCodes"],
+                    geoSets.Pick("0.CountryCodes"),
+                    "Wrong match for `CountryCodes`",
+                )
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["CountryCodes"].([]interface{})[0],
+                    geoSets.Pick("0.CountryCodes.0"),
+                    "Wrong match for `CountryCodes.0`",
+                )
             })
 
-            t.Run("CheckTheGeoSetsAsMapListOfElements", func(t *testing.T) {
-                t.Run("CheckTheGeoSetsListWithStructureDeclaration", func(t *testing.T) {
-                    geoSet := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().
-                        Data.(map[string]map[string]interface{})["ORGS-EU"]
-                    assert.Equal(
-                        t,
-                        geoSet[geoSetsPrimaryKey],
-                        "ORGS-EU",
-                        fmt.Sprintf("The selected element of the object (%v) does not match the expected one (%v)",
-                            geoSet[geoSetsPrimaryKey],
-                            "ORGS-EU",
-                        ),
-                    )
-                })
-
-                t.Run("TestTheGeoSetsListAsMapWithDirectCommand:AsMap()", func(t *testing.T) {
-                    geoSet := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().AsMap()["ORGS-EU"]
-                    assert.Equal(
-                        t,
-                        geoSet[geoSetsPrimaryKey],
-                        "ORGS-EU",
-                        fmt.Sprintf("The selected element of the object (%v) does not match the expected one (%v)",
-                            geoSet[geoSetsPrimaryKey],
-                            "ORGS-EU",
-                        ),
-                    )
-                })
+            t.Run("CheckTheGeoSetsAsMapListOfElementsUsing:`.WithIndex()`", func(t *testing.T) {
+                geoSets := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get()
+                //** Let's work on the `GEOG-EU` element **//
+                geoSetTypeAssertion := geoSets.Data.(map[string]map[string]interface{})["GEOG-EU"]
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["Name"],
+                    geoSets.Pick("GEOG-EU.Name"),
+                    "Wrong match for `Name`",
+                )
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["InternalCode"],
+                    geoSets.Pick("GEOG-EU.InternalCode"),
+                    "Wrong match for `InternalCode`",
+                )
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["UnM49"],
+                    geoSets.Pick("GEOG-EU.UnM49"),
+                    "Wrong match for `UnM49`",
+                )
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["Tags"],
+                    geoSets.Pick("GEOG-EU.Tags"),
+                    "Wrong match for `Tags`",
+                )
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["Tags"].([]interface{})[0],
+                    geoSets.Pick("GEOG-EU.Tags.0"),
+                    "Wrong match for `Tags.0`",
+                )
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["CountryCodes"],
+                    geoSets.Pick("GEOG-EU.CountryCodes"),
+                    "Wrong match for `CountryCodes`",
+                )
+                assert.Equal(
+                    t,
+                    geoSetTypeAssertion["CountryCodes"].([]interface{})[0],
+                    geoSets.Pick("GEOG-EU.CountryCodes.0"),
+                    "Wrong match for `CountryCodes.0`",
+                )
             })
-
         })
 
-        t.Run("CheckTheGeoSetAsSingleElement:First()", func(t *testing.T) {
-            t.Run("CheckTheGeoSetWithStructureDeclaration", func(t *testing.T) {
-                geoSet := geoCodes.GeoSets().First().Data.(map[string]interface{})
+        t.Run("CheckTheGeoSetAsSingleElement:`.First()`", func(t *testing.T) {
+            geoSet := geoCodes.GeoSets().First()
+            geoSetTypeAssertion := geoSet.Data.(map[string]interface{})
+            assert.Equal(
+                t,
+                geoSetTypeAssertion["Name"],
+                geoSet.Pick("Name"),
+                "Wrong match for `Name`",
+            )
+            assert.Equal(
+                t,
+                geoSetTypeAssertion["InternalCode"],
+                geoSet.Pick("InternalCode"),
+                "Wrong match for `InternalCode`",
+            )
+            assert.Equal(
+                t,
+                geoSetTypeAssertion["UnM49"],
+                geoSet.Pick("UnM49"),
+                "Wrong match for `UnM49`",
+            )
+            assert.Equal(
+                t,
+                geoSetTypeAssertion["Tags"],
+                geoSet.Pick("Tags"),
+                "Wrong match for `Tags`",
+            )
+            assert.Equal(
+                t,
+                geoSetTypeAssertion["Tags"].([]interface{})[0],
+                geoSet.Pick("Tags.0"),
+                "Wrong match for `Tags.0`",
+            )
+            assert.Equal(
+                t,
+                geoSetTypeAssertion["CountryCodes"],
+                geoSet.Pick("CountryCodes"),
+                "Wrong match for `CountryCodes`",
+            )
+            assert.Equal(
+                t,
+                geoSetTypeAssertion["CountryCodes"].([]interface{})[0],
+                geoSet.Pick("CountryCodes.0"),
+                "Wrong match for `CountryCodes.0`",
+            )
+
+            t.Run("TestThatTheUseOf`.WithIndex()`HasNoInfluenceOn`.First()`", func(t *testing.T) {
+                _, okWithIndex := geoCodes.GeoSets().
+                    WithIndex(geoSetsPrimaryKey).
+                    First().
+                    Data.(map[string]interface{})
+                assert.True(
+                    t,
+                    okWithIndex,
+                    "Wrong Type",
+                )
+                _, okWithoutIndex := geoCodes.GeoSets().First().Data.(map[string]interface{})
+                assert.True(
+                    t,
+                    okWithoutIndex,
+                    "Wrong Type",
+                )
                 assert.Equal(
                     t,
-                    geoSet[geoSetsPrimaryKey],
-                    geoSetsFirstElementOfTheObjectPrimKey,
-                    fmt.Sprintf("The first element of the object (%v) does not match the expected one (%v)",
-                        geoSet[geoSetsPrimaryKey],
-                        geoSetsFirstElementOfTheObjectPrimKey,
-                    ),
+                    geoCodes.GeoSets().First().Pick(geoSetsPrimaryKey),
+                    geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).First().Pick(geoSetsPrimaryKey),
+                    "WithIndex().First() is different from First()",
                 )
             })
-
-            t.Run("TestTheGeoSetAsObjectWithDirectCommand:AsObj()", func(t *testing.T) {
-                geoSet := geoCodes.GeoSets().First().AsObj()
-                assert.Equal(
-                    t,
-                    geoSet[geoSetsPrimaryKey],
-                    geoSetsFirstElementOfTheObjectPrimKey,
-                    fmt.Sprintf("The first element of the object (%v) does not match the expected one (%v)",
-                        geoSet[geoSetsPrimaryKey],
-                        geoSetsFirstElementOfTheObjectPrimKey,
-                    ),
-                )
-            })
-
-            t.Run("TestThatThe:WithIndex():HasNotInfluenceOnDirectCommand:AsObj()", func(t *testing.T) {
-                geoSet := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).First().AsObj()
-                assert.Equal(
-                    t,
-                    geoSet[geoSetsPrimaryKey],
-                    geoSetsFirstElementOfTheObjectPrimKey,
-                    fmt.Sprintf("The first element of the object (%v) does not match the expected one (%v)",
-                        geoSet[geoSetsPrimaryKey],
-                        geoSetsFirstElementOfTheObjectPrimKey,
-                    ),
-                )
-            })
-
         })
 
-        t.Run("TestTheWrongUseOf:AsMap():AsSlice():AsObj()", func(t *testing.T) {
-            t.Run("TestTheWrongUseInPresenceOfSliceList", func(t *testing.T) {
-                geoSet := geoCodes.GeoSets().Get()
-                t.Run("WrongUseOf:AsMap()", func(t *testing.T) {
-                    assert.Empty(t, geoSet.AsMap(), "The map should be empty")
-                })
-                t.Run("WrongUseOf:AsObj()", func(t *testing.T) {
-                    assert.Empty(t, geoSet.AsObj(), "The object should be empty")
-                })
-            })
-            t.Run("TestTheWrongUseInPresenceOfMapList", func(t *testing.T) {
-                geoSet := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get()
-                t.Run("WrongUseOf:AsSlice()", func(t *testing.T) {
-                    assert.Empty(t, geoSet.AsSlice(), "The slice should be empty")
-                })
-                t.Run("WrongUseOf:AsObj()", func(t *testing.T) {
-                    assert.Empty(t, geoSet.AsObj(), "The object should be empty")
-                })
-            })
-            t.Run("TestTheWrongUseInPresenceOfSingleObject", func(t *testing.T) {
-                geoSet := geoCodes.GeoSets().First()
-                t.Run("WrongUseOf:AsSlice()", func(t *testing.T) {
-                    assert.Empty(t, geoSet.AsSlice(), "The slice should be empty")
-                })
-                t.Run("WrongUseOf:AsMap()", func(t *testing.T) {
-                    assert.Empty(t, geoSet.AsMap(), "The map should be empty")
-                })
-            })
+        t.Run("TestThe`.Pick()`aliases", func(t *testing.T) {
+            geoSet := geoCodes.GeoSets().First()
+            pick := geoSet.Pick(geoSetsPrimaryKey)
+            val := geoSet.Val(geoSetsPrimaryKey)
+            value := geoSet.Value(geoSetsPrimaryKey)
+            lookup := geoSet.Lookup(geoSetsPrimaryKey)
+            assert.True(
+                t,
+                pick == val && val == value && value == lookup && lookup == geoSetsFirstElementOfTheObjectPrimKey,
+                "Wrong Type",
+            )
         })
 
         t.Run("TestTheStringEndpoints", func(t *testing.T) {
-            t.Run("TestThe:ToJson():Endpoint", func(t *testing.T) {
+            t.Run("TestThe`.ToJson()`Endpoint", func(t *testing.T) {
                 assert.Nil(
                     t,
                     TestLib.ValidateJSON([]byte(geoCodes.GeoSets().Get().ToJson())),
@@ -183,7 +231,7 @@ func TestGeoSets(t *testing.T) {
                     "Not a valid Json",
                 )
             })
-            t.Run("TestThe:ToYaml():Endpoint", func(t *testing.T) {
+            t.Run("TestThe`.ToYaml()`Endpoint", func(t *testing.T) {
                 assert.Nil(
                     t,
                     TestLib.ValidateYAML([]byte(geoCodes.GeoSets().Get().ToYaml())),
@@ -200,7 +248,7 @@ func TestGeoSets(t *testing.T) {
                     "Not a valid Yaml",
                 )
             })
-            t.Run("TestThe:ToXml():Endpoint", func(t *testing.T) {
+            t.Run("TestThe`.ToXml()`Endpoint", func(t *testing.T) {
                 assert.Nil(
                     t,
                     TestLib.ValidateXML([]byte(geoCodes.GeoSets().Get().ToXml())),
@@ -217,7 +265,7 @@ func TestGeoSets(t *testing.T) {
                     "Not a valid Xml",
                 )
             })
-            t.Run("TestTheExistenceForTheXsdRelatedToTheList:GetXsd():Endpoint", func(t *testing.T) {
+            t.Run("TestTheExistenceForTheXsdRelatedToTheList(`.GetXsd()`)Endpoint", func(t *testing.T) {
                 xsd := geoCodes.GeoSets().GetXsd()
                 assert.NotEmpty(t, xsd, "The content of the XSD is empty")
                 assert.Contains(
@@ -226,7 +274,7 @@ func TestGeoSets(t *testing.T) {
                     "<xs:schema", "The XSD does not contain the <xs:schema> tag, so it may not be valid",
                 )
             })
-            t.Run("TestTheExistenceForTheXsdRelatedToTheSingleObject:GetXsdSingle():Endpoint", func(t *testing.T) {
+            t.Run("TestTheExistenceForTheXsdRelatedToTheSingleObject(`.GetXsdSingle()`)Endpoint", func(t *testing.T) {
                 xsd := geoCodes.GeoSets().GetXsdSingle()
                 assert.NotEmpty(t, xsd, "The content of the XSD is empty")
                 assert.Contains(
@@ -236,38 +284,36 @@ func TestGeoSets(t *testing.T) {
                 )
             })
 
-            t.Run("TestThe:ToFlatten():Endpoint", func(t *testing.T) {
+            t.Run("TestThe`.ToFlatten()`Endpoint", func(t *testing.T) {
                 list := geoCodes.GeoSets().Get()
-                listSlice := list.AsSlice()
                 listFlatten := list.ToFlatten(".")
                 for i := 0; i < 5; i++ {
                     key := rand.Intn(geoSetsTotalCount)
-
                     assert.Equal(
                         t,
-                        listSlice[key]["InternalCode"],
+                        list.Pick(fmt.Sprintf("%d.InternalCode", key)),
                         listFlatten[fmt.Sprintf("%d.InternalCode", key)],
                         fmt.Sprintf(
-                            "The flatten structure does not work (issue on `Alpha2` for %v)",
-                            listSlice[key]["InternalCode"],
+                            "The flatten structure does not work (issue on `InternalCode` for %v)",
+                            list.Pick(fmt.Sprintf("%d.InternalCode", key)),
                         ),
                     )
                     assert.Equal(
                         t,
-                        listSlice[key]["UnM49"],
+                        list.Pick(fmt.Sprintf("%d.UnM49", key)),
                         listFlatten[fmt.Sprintf("%d.UnM49", key)],
                         fmt.Sprintf(
                             "The flatten structure does not work (issue on `UnM49` for %v)",
-                            listSlice[key]["InternalCode"],
+                            list.Pick(fmt.Sprintf("%d.UnM49", key)),
                         ),
                     )
                     assert.Equal(
                         t,
-                        listSlice[key]["Name"],
+                        list.Pick(fmt.Sprintf("%d.Name", key)),
                         listFlatten[fmt.Sprintf("%d.Name", key)],
                         fmt.Sprintf(
                             "The flatten structure does not work (issue on `Name` for %v)",
-                            listSlice[key]["InternalCode"],
+                            list.Pick(fmt.Sprintf("%d.Name", key)),
                         ),
                     )
                 }
@@ -279,14 +325,14 @@ func TestGeoSets(t *testing.T) {
             geoCodes.UseLanguage("en")
             assert.Equal(
                 t,
-                geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().AsMap()["ORGS-WTO"]["Name"],
+                geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().Pick("ORGS-WTO.Name"),
                 "World Trade Organization (WTO)",
                 "The chosen language does not seem to work",
             )
             geoCodes.UseLanguage("it")
             assert.Equal(
                 t,
-                geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().AsMap()["ORGS-WTO"]["Name"],
+                geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().Pick("ORGS-WTO.Name"),
                 "Organizzazione Mondiale del Commercio (OMC)",
                 "The chosen language does not seem to work",
             )
@@ -296,9 +342,6 @@ func TestGeoSets(t *testing.T) {
 
 
 // func TestElibeGeoSets(t *testing.T) {
-// //     geoSet0 := geoCodes.GeoSets().First().AsObj()["Name"]
-// //     geoSet0 := geoCodes.GeoSets().Get().AsSlice()[0]
-// //     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().AsMap()["ORGS-EU"]
 //
 // //     geoSet0 := geoCodes.GeoSets().First().ToJson()
 // //     geoSet0 := geoCodes.GeoSets().Get().ToJson()
@@ -308,13 +351,12 @@ func TestGeoSets(t *testing.T) {
 // //     geoSet0 := geoCodes.GeoSets().Get().ToYaml()
 // //     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().ToYaml()
 //
-// //     geoSet0 := geoCodes.GeoSets().First().ToXml()
+//     geoSet0 := geoCodes.GeoSets().First().ToXml()
 // //     geoSet0 := geoCodes.GeoSets().Get().ToXml()
 // //     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().ToXml()
 //
 //
 //
 // //     geoCodes.UseLanguage("it")
-// //     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().AsMap()["ORGS-EU"]["Name"]
-// //     fmt.Printf("%v", geoSet0)
+//     fmt.Printf("%v\n", geoSet0)
 // }

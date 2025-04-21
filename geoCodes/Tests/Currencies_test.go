@@ -16,157 +16,168 @@ const currenciesFirstElementOfTheObjectPrimKey string = "AED"
 const currenciesLastElementOfTheObjectPrimKey  string = "ZWL"
 
 func TestCurrencies(t *testing.T) {
-    t.Run("TestTheGeoSetsFunctionality", func(t *testing.T) {
-        t.Run("CheckTheGeoSetsObjectIsCorrectlyInstantiated", func(t *testing.T) {
-            assert.NotNil(t, geoCodes.Currencies(), "The object `GeoSets` cannot be `nil`")
-            t.Run("CheckTheGeoSetsObjectHasTheCorrectNumberOfElements", func(t *testing.T) {
+    t.Run("TestTheCurrenciesFunctionalities", func(t *testing.T) {
+        t.Run("CheckTheCurrenciesObjectIsCorrectlyInstantiated", func(t *testing.T) {
+            assert.NotNil(t, geoCodes.Currencies(), "The object `Currencies` cannot be `nil`")
+            t.Run("CheckTheCurrenciesObjectHasTheCorrectNumberOfElements", func(t *testing.T) {
                 // Check with the alias commands
                 lengthObj := geoCodes.Currencies().Length()
                 countObj  := geoCodes.Currencies().Count()
-                assert.Equal(t, countObj, lengthObj, "The methods Length() e Count() do not seem to be alias")
-                assert.Equal(
+                assert.True(
                     t,
-                    countObj,
-                    currenciesTotalCount,
+                    countObj == lengthObj && lengthObj == currenciesTotalCount,
                     "The number of the elements in the object must be " + fmt.Sprint(currenciesTotalCount),
                 )
             })
         })
-
-        t.Run("CheckTheGeoSetsAsListOfElements:Get()", func(t *testing.T) {
-            t.Run("CheckTheGeoSetsAsSliceListOfElements", func(t *testing.T) {
-                t.Run("CheckTheGeoSetsListWithStructureDeclaration", func(t *testing.T) {
-                    currency := geoCodes.Currencies().Get().Data.([]map[string]interface{})[0]
-                    assert.Equal(
-                        t,
-                        currency[currenciesPrimaryKey],
-                        currenciesFirstElementOfTheObjectPrimKey,
-                        fmt.Sprintf("The first element of the object (%v) does not match the expected one (%v)",
-                            currency[currenciesPrimaryKey],
-                            currenciesFirstElementOfTheObjectPrimKey,
-                        ),
-                    )
-                })
-
-                t.Run("TestTheGeoSetsListAsSliceWithDirectCommand:AsSlice()", func(t *testing.T) {
-                    currency := geoCodes.Currencies().Get().AsSlice()[0]
-                    assert.Equal(
-                        t,
-                        currency[currenciesPrimaryKey],
-                        currenciesFirstElementOfTheObjectPrimKey,
-                        fmt.Sprintf("The first element of the object (%v) does not match the expected one (%v)",
-                            currency[currenciesPrimaryKey],
-                            currenciesFirstElementOfTheObjectPrimKey,
-                        ),
-                    )
-                })
+        t.Run("CheckTheCurrenciesAsListOfElements:`.Get()`", func(t *testing.T) {
+            t.Run("CheckTheCurrenciesAsSliceListOfElements", func(t *testing.T) {
+                currencies := geoCodes.Currencies().Get()
+                //** Let's work on the first element **//
+                currencyTypeAssertion := currencies.Data.([]map[string]interface{})[0]
+                assert.Equal(
+                    t,
+                    currencyTypeAssertion["Name"],
+                    currencies.Pick("0.Name"),
+                    "Wrong match for `Name`",
+                )
+                assert.Equal(
+                    t,
+                    currencyTypeAssertion["IsoAlpha"],
+                    currencies.Pick("0.IsoAlpha"),
+                    "Wrong match for `IsoAlpha`",
+                )
+                assert.Equal(
+                    t,
+                    currencyTypeAssertion["IsoNumber"],
+                    currencies.Pick("0.IsoNumber"),
+                    "Wrong match for `IsoNumber`",
+                )
+                assert.Equal(
+                    t,
+                    currencyTypeAssertion["Symbol"],
+                    currencies.Pick("0.Symbol"),
+                    "Wrong match for `Symbol`",
+                )
+                assert.Equal(
+                    t,
+                    currencyTypeAssertion["Decimal"],
+                    currencies.Pick("0.Decimal"),
+                    "Wrong match for `Decimal`",
+                )
             })
 
-            t.Run("CheckTheGeoSetsAsMapListOfElements", func(t *testing.T) {
-                t.Run("CheckTheGeoSetsListWithStructureDeclaration", func(t *testing.T) {
-                    currency := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().
-                        Data.(map[string]map[string]interface{})["EUR"]
-                    assert.Equal(
-                        t,
-                        currency[currenciesPrimaryKey],
-                        "EUR",
-                        fmt.Sprintf("The selected element of the object (%v) does not match the expected one (%v)",
-                            currency[currenciesPrimaryKey],
-                            "EUR",
-                        ),
-                    )
-                })
-
-                t.Run("TestTheGeoSetsListAsMapWithDirectCommand:AsMap()", func(t *testing.T) {
-                    currency := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().AsMap()["EUR"]
-                    assert.Equal(
-                        t,
-                        currency[currenciesPrimaryKey],
-                        "EUR",
-                        fmt.Sprintf("The selected element of the object (%v) does not match the expected one (%v)",
-                            currency[currenciesPrimaryKey],
-                            "EUR",
-                        ),
-                    )
-                })
+            t.Run("CheckTheCurrenciesAsMapListOfElementsUsing:`.WithIndex()`", func(t *testing.T) {
+                currencies := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get()
+                //** Let's work on the `EUR` element **//
+                currencyTypeAssertion := currencies.Data.(map[string]map[string]interface{})["EUR"]
+                assert.Equal(
+                    t,
+                    currencyTypeAssertion["Name"],
+                    currencies.Pick("EUR.Name"),
+                    "Wrong match for `Name`",
+                )
+                assert.Equal(
+                    t,
+                    currencyTypeAssertion["IsoAlpha"],
+                    currencies.Pick("EUR.IsoAlpha"),
+                    "Wrong match for `IsoAlpha`",
+                )
+                assert.Equal(
+                    t,
+                    currencyTypeAssertion["IsoNumber"],
+                    currencies.Pick("EUR.IsoNumber"),
+                    "Wrong match for `IsoNumber`",
+                )
+                assert.Equal(
+                    t,
+                    currencyTypeAssertion["Symbol"],
+                    currencies.Pick("EUR.Symbol"),
+                    "Wrong match for `Symbol`",
+                )
+                assert.Equal(
+                    t,
+                    currencyTypeAssertion["Decimal"],
+                    currencies.Pick("EUR.Decimal"),
+                    "Wrong match for `Decimal`",
+                )
             })
-
         })
 
-        t.Run("CheckTheGeoSetAsSingleElement:First()", func(t *testing.T) {
-            t.Run("CheckTheGeoSetWithStructureDeclaration", func(t *testing.T) {
-                currency := geoCodes.Currencies().First().Data.(map[string]interface{})
+        t.Run("CheckTheCurrencyAsSingleElement:`.First()`", func(t *testing.T) {
+            currency := geoCodes.Currencies().First()
+            currencyTypeAssertion := currency.Data.(map[string]interface{})
+            assert.Equal(
+                t,
+                currencyTypeAssertion["Name"],
+                currency.Pick("Name"),
+                "Wrong match for `Name`",
+            )
+            assert.Equal(
+                t,
+                currencyTypeAssertion["IsoAlpha"],
+                currency.Pick("IsoAlpha"),
+                "Wrong match for `IsoAlpha`",
+            )
+            assert.Equal(
+                t,
+                currencyTypeAssertion["IsoNumber"],
+                currency.Pick("IsoNumber"),
+                "Wrong match for `IsoNumber`",
+            )
+            assert.Equal(
+                t,
+                currencyTypeAssertion["Symbol"],
+                currency.Pick("Symbol"),
+                "Wrong match for `Symbol`",
+            )
+            assert.Equal(
+                t,
+                currencyTypeAssertion["Decimal"],
+                currency.Pick("Decimal"),
+                "Wrong match for `Decimal`",
+            )
+
+            t.Run("TestThatTheUseOf`.WithIndex()`HasNoInfluenceOn`.First()`", func(t *testing.T) {
+                _, okWithIndex := geoCodes.Currencies().
+                    WithIndex(currenciesPrimaryKey).
+                    First().
+                    Data.(map[string]interface{})
+                assert.True(
+                    t,
+                    okWithIndex,
+                    "Wrong Type",
+                )
+                _, okWithoutIndex := geoCodes.Currencies().First().Data.(map[string]interface{})
+                assert.True(
+                    t,
+                    okWithoutIndex,
+                    "Wrong Type",
+                )
                 assert.Equal(
                     t,
-                    currency[currenciesPrimaryKey],
-                    currenciesFirstElementOfTheObjectPrimKey,
-                    fmt.Sprintf("The first element of the object (%v) does not match the expected one (%v)",
-                        currency[currenciesPrimaryKey],
-                        currenciesFirstElementOfTheObjectPrimKey,
-                    ),
+                    geoCodes.Currencies().First().Pick(currenciesPrimaryKey),
+                    geoCodes.Currencies().WithIndex(currenciesPrimaryKey).First().Pick(currenciesPrimaryKey),
+                    "WithIndex().First() is different from First()",
                 )
             })
-
-            t.Run("TestTheGeoSetAsObjectWithDirectCommand:AsObj()", func(t *testing.T) {
-                currency := geoCodes.Currencies().First().AsObj()
-                assert.Equal(
-                    t,
-                    currency[currenciesPrimaryKey],
-                    currenciesFirstElementOfTheObjectPrimKey,
-                    fmt.Sprintf("The first element of the object (%v) does not match the expected one (%v)",
-                        currency[currenciesPrimaryKey],
-                        currenciesFirstElementOfTheObjectPrimKey,
-                    ),
-                )
-            })
-
-            t.Run("TestThatThe:WithIndex():HasNotInfluenceOnDirectCommand:AsObj()", func(t *testing.T) {
-                currency := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).First().AsObj()
-                assert.Equal(
-                    t,
-                    currency[currenciesPrimaryKey],
-                    currenciesFirstElementOfTheObjectPrimKey,
-                    fmt.Sprintf("The first element of the object (%v) does not match the expected one (%v)",
-                        currency[currenciesPrimaryKey],
-                        currenciesFirstElementOfTheObjectPrimKey,
-                    ),
-                )
-            })
-
         })
 
-        t.Run("TestTheWrongUseOf:AsMap():AsSlice():AsObj()", func(t *testing.T) {
-            t.Run("TestTheWrongUseInPresenceOfSliceList", func(t *testing.T) {
-                currency := geoCodes.Currencies().Get()
-                t.Run("WrongUseOf:AsMap()", func(t *testing.T) {
-                    assert.Empty(t, currency.AsMap(), "The map should be empty")
-                })
-                t.Run("WrongUseOf:AsObj()", func(t *testing.T) {
-                    assert.Empty(t, currency.AsObj(), "The object should be empty")
-                })
-            })
-            t.Run("TestTheWrongUseInPresenceOfMapList", func(t *testing.T) {
-                currency := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get()
-                t.Run("WrongUseOf:AsSlice()", func(t *testing.T) {
-                    assert.Empty(t, currency.AsSlice(), "The slice should be empty")
-                })
-                t.Run("WrongUseOf:AsObj()", func(t *testing.T) {
-                    assert.Empty(t, currency.AsObj(), "The object should be empty")
-                })
-            })
-            t.Run("TestTheWrongUseInPresenceOfSingleObject", func(t *testing.T) {
-                currency := geoCodes.Currencies().First()
-                t.Run("WrongUseOf:AsSlice()", func(t *testing.T) {
-                    assert.Empty(t, currency.AsSlice(), "The slice should be empty")
-                })
-                t.Run("WrongUseOf:AsMap()", func(t *testing.T) {
-                    assert.Empty(t, currency.AsMap(), "The map should be empty")
-                })
-            })
+        t.Run("TestThe`.Pick()`aliases", func(t *testing.T) {
+            currency := geoCodes.Currencies().First()
+            pick := currency.Pick(currenciesPrimaryKey)
+            val := currency.Val(currenciesPrimaryKey)
+            value := currency.Value(currenciesPrimaryKey)
+            lookup := currency.Lookup(currenciesPrimaryKey)
+            assert.True(
+                t,
+                pick == val && val == value && value == lookup && lookup == currenciesFirstElementOfTheObjectPrimKey,
+                "Wrong Type",
+            )
         })
 
         t.Run("TestTheStringEndpoints", func(t *testing.T) {
-            t.Run("TestThe:ToJson():Endpoint", func(t *testing.T) {
+            t.Run("TestThe`.ToJson()`Endpoint", func(t *testing.T) {
                 assert.Nil(
                     t,
                     TestLib.ValidateJSON([]byte(geoCodes.Currencies().Get().ToJson())),
@@ -183,7 +194,7 @@ func TestCurrencies(t *testing.T) {
                     "Not a valid Json",
                 )
             })
-            t.Run("TestThe:ToYaml():Endpoint", func(t *testing.T) {
+            t.Run("TestThe`.ToYaml()`Endpoint", func(t *testing.T) {
                 assert.Nil(
                     t,
                     TestLib.ValidateYAML([]byte(geoCodes.Currencies().Get().ToYaml())),
@@ -200,7 +211,7 @@ func TestCurrencies(t *testing.T) {
                     "Not a valid Yaml",
                 )
             })
-            t.Run("TestThe:ToXml():Endpoint", func(t *testing.T) {
+            t.Run("TestThe`.ToXml()`Endpoint", func(t *testing.T) {
                 assert.Nil(
                     t,
                     TestLib.ValidateXML([]byte(geoCodes.Currencies().Get().ToXml())),
@@ -217,7 +228,7 @@ func TestCurrencies(t *testing.T) {
                     "Not a valid Xml",
                 )
             })
-            t.Run("TestTheExistenceForTheXsdRelatedToTheList:GetXsd():Endpoint", func(t *testing.T) {
+            t.Run("TestTheExistenceForTheXsdRelatedToTheList(`.GetXsd()`)Endpoint", func(t *testing.T) {
                 xsd := geoCodes.Currencies().GetXsd()
                 assert.NotEmpty(t, xsd, "The content of the XSD is empty")
                 assert.Contains(
@@ -226,7 +237,7 @@ func TestCurrencies(t *testing.T) {
                     "<xs:schema", "The XSD does not contain the <xs:schema> tag, so it may not be valid",
                 )
             })
-            t.Run("TestTheExistenceForTheXsdRelatedToTheSingleObject:GetXsdSingle():Endpoint", func(t *testing.T) {
+            t.Run("TestTheExistenceForTheXsdRelatedToTheSingleObject(`.GetXsdSingle()`)Endpoint", func(t *testing.T) {
                 xsd := geoCodes.Currencies().GetXsdSingle()
                 assert.NotEmpty(t, xsd, "The content of the XSD is empty")
                 assert.Contains(
@@ -236,56 +247,54 @@ func TestCurrencies(t *testing.T) {
                 )
             })
 
-            t.Run("TestThe:ToFlatten():Endpoint", func(t *testing.T) {
+            t.Run("TestThe`.ToFlatten()`Endpoint", func(t *testing.T) {
                 list := geoCodes.Currencies().Get()
-                listSlice := list.AsSlice()
                 listFlatten := list.ToFlatten(".")
                 for i := 0; i < 5; i++ {
                     key := rand.Intn(currenciesTotalCount)
-
                     assert.Equal(
                         t,
-                        listSlice[key]["IsoAlpha"],
+                        list.Pick(fmt.Sprintf("%d.IsoAlpha", key)),
                         listFlatten[fmt.Sprintf("%d.IsoAlpha", key)],
                         fmt.Sprintf(
                             "The flatten structure does not work (issue on `IsoAlpha` for %v)",
-                            listSlice[key]["IsoAlpha"],
+                            list.Pick(fmt.Sprintf("%d.IsoAlpha", key)),
                         ),
                     )
                     assert.Equal(
                         t,
-                        listSlice[key]["IsoNumber"],
+                        list.Pick(fmt.Sprintf("%d.IsoNumber", key)),
                         listFlatten[fmt.Sprintf("%d.IsoNumber", key)],
                         fmt.Sprintf(
                             "The flatten structure does not work (issue on `IsoNumber` for %v)",
-                            listSlice[key]["IsoAlpha"],
+                            list.Pick(fmt.Sprintf("%d.IsoNumber", key)),
                         ),
                     )
                     assert.Equal(
                         t,
-                        listSlice[key]["Name"],
+                        list.Pick(fmt.Sprintf("%d.Name", key)),
                         listFlatten[fmt.Sprintf("%d.Name", key)],
                         fmt.Sprintf(
                             "The flatten structure does not work (issue on `Name` for %v)",
-                            listSlice[key]["IsoAlpha"],
+                            list.Pick(fmt.Sprintf("%d.Name", key)),
                         ),
                     )
                     assert.Equal(
                         t,
-                        listSlice[key]["Symbol"],
+                        list.Pick(fmt.Sprintf("%d.Symbol", key)),
                         listFlatten[fmt.Sprintf("%d.Symbol", key)],
                         fmt.Sprintf(
                             "The flatten structure does not work (issue on `Symbol` for %v)",
-                            listSlice[key]["IsoAlpha"],
+                            list.Pick(fmt.Sprintf("%d.Symbol", key)),
                         ),
                     )
                     assert.Equal(
                         t,
-                        listSlice[key]["Decimal"],
+                        list.Pick(fmt.Sprintf("%d.Decimal", key)),
                         listFlatten[fmt.Sprintf("%d.Decimal", key)],
                         fmt.Sprintf(
                             "The flatten structure does not work (issue on `Decimal` for %v)",
-                            listSlice[key]["IsoAlpha"],
+                            list.Pick(fmt.Sprintf("%d.Decimal", key)),
                         ),
                     )
                 }
@@ -296,14 +305,14 @@ func TestCurrencies(t *testing.T) {
             geoCodes.UseLanguage("en")
             assert.Equal(
                 t,
-                geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().AsMap()["AED"]["Name"],
+                geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().Pick("AED.Name"),
                 "UAE Dirham",
                 "The chosen language does not seem to work",
             )
             geoCodes.UseLanguage("it")
             assert.Equal(
                 t,
-                geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().AsMap()["AED"]["Name"],
+                geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().Pick("AED.Name"),
                 "Dirham degli Emirati Arabi Uniti",
                 "The chosen language does not seem to work",
             )
@@ -314,8 +323,6 @@ func TestCurrencies(t *testing.T) {
 
 // func TestElibeCurrencies(t *testing.T) {
 // //     currency0 := geoCodes.Currencies().First().AsObj()["Name"]
-// //     currency0 := geoCodes.Currencies().Get().AsSlice()[0]
-// //     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().AsMap()["EUR"]
 //
 // //     currency0 := geoCodes.Currencies().First().ToJson()
 // //     currency0 := geoCodes.Currencies().Get().ToJson()
@@ -333,6 +340,5 @@ func TestCurrencies(t *testing.T) {
 //
 //
 // //     geoCodes.UseLanguage("it")
-// //     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().AsMap()["EUR"]["Name"]
 // //     fmt.Printf("%v", currency0)
 // }
