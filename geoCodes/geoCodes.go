@@ -108,32 +108,12 @@ func (gc *geoCode) GetXsdSingle() string {
 }
 
 
-func (gcr *geoCodeResult) AsObj() (map[string]interface{}) {
-    if data, ok := gcr.Data.(map[string]interface{}); ok {
-        return data
-    }
-    return nil
-}
-func (gcr *geoCodeResult) AsMap() (map[string]map[string]interface{}) {
-    if data, ok := gcr.Data.(map[string]map[string]interface{}); ok {
-        return data
-    }
-    return nil
-}
-func (gcr *geoCodeResult) AsSlice() ([]map[string]interface{}) {
-    if data, ok := gcr.Data.([]map[string]interface{}); ok {
-        return data
-    }
-    return nil
-}
-
 // Pick and alias
 func (gcr *geoCodeResult) Pick(path string) interface{} {
     return lib.PickPropertyValue(gcr.Data, path)
 }
 func (gcr *geoCodeResult) Val(path string) interface{}    { return gcr.Pick(path) }
 func (gcr *geoCodeResult) Value(path string) interface{}  { return gcr.Pick(path) }
-func (gcr *geoCodeResult) At(path string) interface{}     { return gcr.Pick(path) }
 func (gcr *geoCodeResult) Lookup(path string) interface{} { return gcr.Pick(path) }
 
 func (gcr *geoCodeResult) ToJson() (string) {
