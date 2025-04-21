@@ -36,6 +36,10 @@ func UseLanguage(lang string) {
     lib.SetLanguage("current", lang)
 }
 
+func UseDefaultLanguage() {
+    lib.SetLanguage("current", GetDefaultLanguage())
+}
+
 func ResetLanguages() {
     lib.ResetLanguages()
 }
@@ -108,7 +112,7 @@ func (gc *geoCode) GetXsdSingle() string {
 }
 
 
-// Pick and alias
+// Pick and aliases
 func (gcr *geoCodeResult) Pick(path string) interface{} {
     return lib.PickPropertyValue(gcr.Data, path)
 }
@@ -158,15 +162,11 @@ func (gc *geoCode) Offset(offset int) *geoCode {
     lib.Setters(gc.Reference, "offset", offset)
     return gc
 }
-func (gc *geoCode) Skip(offset int) *geoCode {
-    return gc.Offset(offset)
-}
+func (gc *geoCode) Skip(offset int) *geoCode { return gc.Offset(offset) }
 
 func (gc *geoCode) Limit(limit int) *geoCode {
     lib.Setters(gc.Reference, "limit", limit)
     return gc
 }
-func (gc *geoCode) Take(limit int) *geoCode {
-    return gc.Limit(limit)
-}
+func (gc *geoCode) Take(limit int) *geoCode { return gc.Limit(limit) }
 

@@ -355,6 +355,13 @@ func TestGeoSets(t *testing.T) {
                 "Organizzazione Mondiale del Commercio (OMC)",
                 "The chosen language does not seem to work",
             )
+            geoCodes.UseDefaultLanguage()
+            assert.Equal(
+                t,
+                geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().Pick("ORGS-WTO.Name"),
+                "World Trade Organization (WTO)",
+                "The chosen language does not seem to work",
+            )
         })
     })
 }

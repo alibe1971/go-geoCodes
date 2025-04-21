@@ -337,6 +337,13 @@ func TestCurrencies(t *testing.T) {
                 "Dirham degli Emirati Arabi Uniti",
                 "The chosen language does not seem to work",
             )
+            geoCodes.UseDefaultLanguage()
+            assert.Equal(
+                t,
+                geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().Pick("AED.Name"),
+                "UAE Dirham",
+                "The chosen language does not seem to work",
+            )
         })
     })
 }

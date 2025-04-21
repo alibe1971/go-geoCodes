@@ -780,15 +780,22 @@ func TestCountries(t *testing.T) {
                 "Repubblica d'Irlanda",
                 "The chosen language does not seem to work",
             )
+            geoCodes.UseDefaultLanguage()
+            assert.Equal(
+                t,
+                geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().Pick("IE.FullName"),
+                "Republic of Ireland",
+                "The chosen language does not seem to work",
+            )
         })
     })
 }
 
 
 // func TestElibeCountries(t *testing.T) {
-// //     country0 := geoCodes.Countries().First().Pick("FullNameWrong")
+//     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().Pick("IE.FullName")
 // //     country0 := geoCodes.Countries().First().ToFlatten(".")["FullNameWrong"]
-// //     fmt.Printf("%v\n", country0)
+//     fmt.Printf("%v\n", country0)
 //     TestLib.WriteDataToFile("\n")
 //
 // }
