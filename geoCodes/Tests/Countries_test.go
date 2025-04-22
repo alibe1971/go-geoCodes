@@ -12,10 +12,30 @@ import (
 // var Countries = geoCodes.Countries()
 
 const countriesTotalCount int = 250
-const countriesPrimaryKey string = "Alpha2"
-var countriesGlobalObject = map[string]string{
-    "firstElement": "AD",
-    "lastElement":  "ZW",
+var countriesPrimaryKey string = geoCodes.Countries().GetPrimaryKey()
+var countriesIndexes []string = geoCodes.Countries().GetIndexes()
+var countriesFields []string = geoCodes.Countries().GetFields()
+var countriesExpectedOrderBy = map[string]map[string]string{
+    "Alpha2": {
+        "ASC":  "AD",
+        "DESC": "ZW",
+    },
+    "Alpha3": {
+        "ASC":  "ABW",
+        "DESC": "ZWE",
+    },
+    "UnM49": {
+        "ASC":  "004",
+        "DESC": "894",
+    },
+    "Name": {
+        "ASC":  "Afghanistan",
+        "DESC": "Zimbabwe",
+    },
+    "FullName": {
+        "ASC":  "American Samoa",
+        "DESC": "Vatican City State",
+    },
 }
 
 
@@ -615,7 +635,8 @@ func TestCountries(t *testing.T) {
                 lookup := country.Lookup(countriesPrimaryKey)
                 assert.True(
                     t,
-                    pick == val && val == value && value == lookup && lookup == countriesGlobalObject["firstElement"],
+                    pick == val && val == value && value == lookup &&
+                        lookup == countriesExpectedOrderBy["Alpha2"]["ASC"],
                     "Wrong Type",
                 )
             })
@@ -788,14 +809,123 @@ func TestCountries(t *testing.T) {
                 "The chosen language does not seem to work",
             )
         })
+
+        t.Run("TestTheIndexSetters", func(t *testing.T) {
+            ObjSetters := geoCodes.Countries()
+            const CheckProperty string = "Republic of Ireland"
+            t.Run("TestThe`.WithIndex()`Setter", func(t *testing.T) {
+                t.Run("TestTheOverrideBehavior", func(t *testing.T) {
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("Name").WithIndex("FullName").WithIndex("Alpha3").WithIndex("UnM49").
+                            WithIndex("Alpha2").Get().Pick("IE.FullName"),
+                        CheckProperty,
+                        "The WithIndex override does not seem to work",
+                    )
+                })
+                t.Run("TestTheAllIndexes", func(t *testing.T) {
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("Alpha2").Get().Pick("IE.FullName"),
+                        CheckProperty,
+                        "The index `Alpha2` does not seem to work",
+                    )
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("Alpha3").Get().Pick("IRL.FullName"),
+                        CheckProperty,
+                        "The index `Alpha3` does not seem to work",
+                    )
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("UnM49").Get().Pick("372.FullName"),
+                        CheckProperty,
+                        "The index `UnM49` does not seem to work",
+                    )
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("Name").Get().Pick("Ireland.FullName"),
+                        CheckProperty,
+                        "The index `Name` does not seem to work",
+                    )
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("FullName").Get().Pick("Republic of Ireland.FullName"),
+                        CheckProperty,
+                        "The index `FullName` does not seem to work",
+                    )
+                })
+
+                t.Run("TestTheWrongIndex", func(t *testing.T) {
+                    defer func() {
+                        if r := recover(); r != nil {
+                          assert.Contains(t, r.(string), "not existent or not usable as index")
+                          return
+                        }
+                        t.Error("Expected panic, but no panic occurred")
+                    }()
+                    ObjSetters.WithIndex("Dependency")
+                })
+            })
+
+            t.Run("TestThe`.OrderBy()`Setter", func(t *testing.T) {
+                t.Run("TestTheOverrideBehavior", func(t *testing.T) {
+                    assert.Equal(
+                        t,
+                        ObjSetters.OrderBy("Name", "").OrderBy("FullName", "").OrderBy("Alpha3", "").
+                            OrderBy("UnM49", "").OrderBy(countriesPrimaryKey, "").First().Pick(countriesPrimaryKey),
+                        countriesExpectedOrderBy[countriesPrimaryKey]["ASC"],
+                        "The OrderBy override does not seem to work",
+                    )
+                    assert.Equal(
+                        t,
+                        ObjSetters.OrderBy(countriesPrimaryKey, "asc").OrderBy(countriesPrimaryKey, "DESC").
+                            First().Pick(countriesPrimaryKey),
+                        countriesExpectedOrderBy[countriesPrimaryKey]["DESC"],
+                        "The OrderBy override does not seem to work",
+                    )
+                })
+                t.Run("TestTheAllIndexesAndDirections", func(t *testing.T) {
+                    for prop := range countriesExpectedOrderBy {
+                        assert.Equal(
+                            t,
+                            ObjSetters.OrderBy(prop, "asc").First().Pick(prop),
+                            countriesExpectedOrderBy[prop]["ASC"],
+                            "The OrderBy `" + prop + "` (asc) does not seem to work",
+                        )
+                        assert.Equal(
+                            t,
+                            ObjSetters.OrderBy(prop, "desc").First().Pick(prop),
+                            countriesExpectedOrderBy[prop]["DESC"],
+                            "The OrderBy `" + prop + "` (desc) does not seem to work",
+                        )
+                    }
+                })
+                t.Run("TestTheWrongIndex", func(t *testing.T) {
+                    defer func() {
+                        if r := recover(); r != nil {
+                            assert.Contains(t, r.(string), "Attribute `orderBy`.`property` must be usable as index.")
+                            return
+                        }
+                        t.Error("Expected panic, but no panic occurred")
+                    }()
+                    ObjSetters.OrderBy("Dependency", "")
+                })
+                t.Run("TestTheWrongDirection", func(t *testing.T) {
+                    const errMsgDirection = "Attribute `orderBy`.`direction` must be `ASC` " +
+                        "(default if empty string - ``) or `DESC` (case insensitive)"
+                    defer func() {
+                        if r := recover(); r != nil {
+                            assert.Contains(t, r.(string), errMsgDirection)
+                            return
+                        }
+                        t.Error("Expected panic, but no panic occurred")
+                    }()
+                    ObjSetters.OrderBy("Alpha2", "wrong")
+                })
+            })
+        })
     })
 }
 
 
-// func TestElibeCountries(t *testing.T) {
-//     country0 := geoCodes.Countries().WithIndex(countriesPrimaryKey).Get().Pick("IE.FullName")
-// //     country0 := geoCodes.Countries().First().ToFlatten(".")["FullNameWrong"]
-//     fmt.Printf("%v\n", country0)
-//     TestLib.WriteDataToFile("\n")
-//
-// }

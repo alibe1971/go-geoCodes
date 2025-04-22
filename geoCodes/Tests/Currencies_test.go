@@ -10,11 +10,24 @@ import (
 )
 
 const currenciesTotalCount int = 180
-const currenciesPrimaryKey string = "IsoAlpha"
-var currenciesGlobalObject = map[string]string{
-    "firstElement": "AED",
-    "lastElement":  "ZWL",
+var currenciesPrimaryKey string = geoCodes.Currencies().GetPrimaryKey()
+var currenciesIndexes []string = geoCodes.Currencies().GetIndexes()
+var currenciesFields []string = geoCodes.Currencies().GetFields()
+var currenciesExpectedOrderBy = map[string]map[string]string{
+    "IsoAlpha": {
+        "ASC":  "AED",
+        "DESC": "ZWL",
+    },
+    "IsoNumber": {
+        "ASC":  "008",
+        "DESC": "999",
+    },
+    "Name": {
+        "ASC":  "ADB Unit of Account",
+        "DESC": "Zloty",
+    },
 }
+
 
 func TestCurrencies(t *testing.T) {
     t.Run("TestTheCurrenciesFunctionalities", func(t *testing.T) {
@@ -173,7 +186,8 @@ func TestCurrencies(t *testing.T) {
                 lookup := currency.Lookup(currenciesPrimaryKey)
                 assert.True(
                     t,
-                    pick == val && val == value && value == lookup && lookup == currenciesGlobalObject["firstElement"],
+                    pick == val && val == value && value == lookup &&
+                        lookup == currenciesExpectedOrderBy["IsoAlpha"]["ASC"],
                     "Wrong Type",
                 )
             })
@@ -345,28 +359,110 @@ func TestCurrencies(t *testing.T) {
                 "The chosen language does not seem to work",
             )
         })
+
+        t.Run("TestTheIndexSetters", func(t *testing.T) {
+            ObjSetters := geoCodes.Currencies()
+            const CheckProperty string = "Netherlands Antillean Guilder"
+            t.Run("TestThe`.WithIndex()`Setter", func(t *testing.T) {
+                t.Run("TestTheOverrideBehavior", func(t *testing.T) {
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("Name").WithIndex("IsoNumber").
+                            WithIndex("IsoAlpha").Get().Pick("ANG.Name"),
+                        CheckProperty,
+                        "The WithIndex override does not seem to work",
+                    )
+                })
+                t.Run("TestTheAllIndexes", func(t *testing.T) {
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("IsoAlpha").Get().Pick("ANG.Name"),
+                        CheckProperty,
+                        "The index `IsoAlpha` does not seem to work",
+                    )
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("IsoNumber").Get().Pick("532.Name"),
+                        CheckProperty,
+                        "The index `IsoNumber` does not seem to work",
+                    )
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("Name").Get().Pick("Netherlands Antillean Guilder.Name"),
+                        CheckProperty,
+                        "The index `Name` does not seem to work",
+                    )
+                })
+
+                t.Run("TestTheWrongIndex", func(t *testing.T) {
+                    defer func() {
+                        if r := recover(); r != nil {
+                          assert.Contains(t, r.(string), "not existent or not usable as index")
+                          return
+                        }
+                        t.Error("Expected panic, but no panic occurred")
+                    }()
+                    ObjSetters.WithIndex("Symbol")
+                })
+            })
+
+            t.Run("TestThe`.OrderBy()`Setter", func(t *testing.T) {
+                t.Run("TestTheOverrideBehavior", func(t *testing.T) {
+                    assert.Equal(
+                        t,
+                        ObjSetters.OrderBy("Name", "").OrderBy("IsoNumber", "").OrderBy(currenciesPrimaryKey, "").
+                            First().Pick(currenciesPrimaryKey),
+                        currenciesExpectedOrderBy[currenciesPrimaryKey]["ASC"],
+                        "The OrderBy override does not seem to work",
+                    )
+                    assert.Equal(
+                        t,
+                        ObjSetters.OrderBy(currenciesPrimaryKey, "asc").OrderBy(currenciesPrimaryKey, "DESC").
+                            First().Pick(currenciesPrimaryKey),
+                        currenciesExpectedOrderBy[currenciesPrimaryKey]["DESC"],
+                        "The OrderBy override does not seem to work",
+                    )
+                })
+                t.Run("TestTheAllIndexesAndDirections", func(t *testing.T) {
+                    for prop := range currenciesExpectedOrderBy {
+                        assert.Equal(
+                            t,
+                            ObjSetters.OrderBy(prop, "asc").First().Pick(prop),
+                            currenciesExpectedOrderBy[prop]["ASC"],
+                            "The OrderBy `" + prop + "` (asc) does not seem to work",
+                        )
+                        assert.Equal(
+                            t,
+                            ObjSetters.OrderBy(prop, "desc").First().Pick(prop),
+                            currenciesExpectedOrderBy[prop]["DESC"],
+                            "The OrderBy `" + prop + "` (desc) does not seem to work",
+                        )
+                    }
+                })
+                t.Run("TestTheWrongIndex", func(t *testing.T) {
+                    defer func() {
+                        if r := recover(); r != nil {
+                            assert.Contains(t, r.(string), "Attribute `orderBy`.`property` must be usable as index.")
+                            return
+                        }
+                        t.Error("Expected panic, but no panic occurred")
+                    }()
+                    ObjSetters.OrderBy("Symbol", "")
+                })
+                t.Run("TestTheWrongDirection", func(t *testing.T) {
+                    const errMsgDirection = "Attribute `orderBy`.`direction` must be `ASC` " +
+                        "(default if empty string - ``) or `DESC` (case insensitive)"
+                    defer func() {
+                        if r := recover(); r != nil {
+                            assert.Contains(t, r.(string), errMsgDirection)
+                            return
+                        }
+                        t.Error("Expected panic, but no panic occurred")
+                    }()
+                    ObjSetters.OrderBy("IsoAlpha", "wrong")
+                })
+            })
+        })
+
     })
 }
-
-
-// func TestElibeCurrencies(t *testing.T) {
-// //     currency0 := geoCodes.Currencies().First().AsObj()["Name"]
-//
-// //     currency0 := geoCodes.Currencies().First().ToJson()
-// //     currency0 := geoCodes.Currencies().Get().ToJson()
-// //     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().ToJson()
-//
-// //     currency0 := geoCodes.Currencies().First().ToYaml()
-// //     currency0 := geoCodes.Currencies().Get().ToYaml()
-// //     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().ToYaml()
-//
-// //     currency0 := geoCodes.Currencies().First().ToXml()
-// //     currency0 := geoCodes.Currencies().Get().ToXml()
-// //     currency0 := geoCodes.Currencies().WithIndex(currenciesPrimaryKey).Get().ToXml()
-//
-//
-//
-//
-// //     geoCodes.UseLanguage("it")
-// //     fmt.Printf("%v", currency0)
-// }

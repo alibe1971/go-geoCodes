@@ -10,10 +10,18 @@ import (
 )
 
 const geoSetsTotalCount int = 62
-const geoSetsPrimaryKey string = "InternalCode"
-var geoSetsGlobalObject = map[string]string{
-    "firstElement": "CONV-G20",
-    "lastElement":  "ZONE-EZ",
+var geoSetsPrimaryKey string = geoCodes.GeoSets().GetPrimaryKey()
+var geoSetsIndexes []string = geoCodes.GeoSets().GetIndexes()
+var geoSetsFields []string = geoCodes.GeoSets().GetFields()
+var geoSetsExpectedOrderBy = map[string]map[string]string{
+    "InternalCode": {
+        "ASC":  "CONV-G20",
+        "DESC": "ZONE-EZ",
+    },
+    "Name": {
+        "ASC":  "Africa",
+        "DESC": "World Trade Organization (WTO)",
+    },
 }
 
 func TestGeoSets(t *testing.T) {
@@ -210,7 +218,8 @@ func TestGeoSets(t *testing.T) {
                 lookup := geoSet.Lookup(geoSetsPrimaryKey)
                 assert.True(
                     t,
-                    pick == val && val == value && value == lookup && lookup == geoSetsGlobalObject["firstElement"],
+                    pick == val && val == value && value == lookup &&
+                        lookup == geoSetsExpectedOrderBy["InternalCode"]["ASC"],
                     "Wrong Type",
                 )
             })
@@ -363,26 +372,103 @@ func TestGeoSets(t *testing.T) {
                 "The chosen language does not seem to work",
             )
         })
+
+        t.Run("TestTheIndexSetters", func(t *testing.T) {
+            ObjSetters := geoCodes.GeoSets()
+            const CheckProperty string = "European Union (EU)"
+            t.Run("TestThe`.WithIndex()`Setter", func(t *testing.T) {
+                t.Run("TestTheOverrideBehavior", func(t *testing.T) {
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("Name").WithIndex("InternalCode").Get().Pick("ORGS-EU.Name"),
+                        CheckProperty,
+                        "The WithIndex override does not seem to work",
+                    )
+                })
+                t.Run("TestTheAllIndexes", func(t *testing.T) {
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("InternalCode").Get().Pick("ORGS-EU.Name"),
+                        CheckProperty,
+                        "The index `InternalCode` does not seem to work",
+                    )
+                    assert.Equal(
+                        t,
+                        ObjSetters.WithIndex("Name").Get().Pick("European Union (EU).Name"),
+                        CheckProperty,
+                        "The index `Name` does not seem to work",
+                    )
+                })
+
+                t.Run("TestTheWrongIndex", func(t *testing.T) {
+                    defer func() {
+                        if r := recover(); r != nil {
+                          assert.Contains(t, r.(string), "not existent or not usable as index")
+                          return
+                        }
+                        t.Error("Expected panic, but no panic occurred")
+                    }()
+                    ObjSetters.WithIndex("Symbol")
+                })
+            })
+
+            t.Run("TestThe`.OrderBy()`Setter", func(t *testing.T) {
+                t.Run("TestTheOverrideBehavior", func(t *testing.T) {
+                    assert.Equal(
+                        t,
+                        ObjSetters.OrderBy("Name", "").OrderBy("InternalCode", "").OrderBy(geoSetsPrimaryKey, "").
+                            First().Pick(geoSetsPrimaryKey),
+                        geoSetsExpectedOrderBy[geoSetsPrimaryKey]["ASC"],
+                        "The OrderBy override does not seem to work",
+                    )
+                    assert.Equal(
+                        t,
+                        ObjSetters.OrderBy(geoSetsPrimaryKey, "asc").OrderBy(geoSetsPrimaryKey, "DESC").
+                            First().Pick(geoSetsPrimaryKey),
+                        geoSetsExpectedOrderBy[geoSetsPrimaryKey]["DESC"],
+                        "The OrderBy override does not seem to work",
+                    )
+                })
+                t.Run("TestTheAllIndexesAndDirections", func(t *testing.T) {
+                    for prop := range geoSetsExpectedOrderBy {
+                        assert.Equal(
+                            t,
+                            ObjSetters.OrderBy(prop, "asc").First().Pick(prop),
+                            geoSetsExpectedOrderBy[prop]["ASC"],
+                            "The OrderBy `" + prop + "` (asc) does not seem to work",
+                        )
+                        assert.Equal(
+                            t,
+                            ObjSetters.OrderBy(prop, "desc").First().Pick(prop),
+                            geoSetsExpectedOrderBy[prop]["DESC"],
+                            "The OrderBy `" + prop + "` (desc) does not seem to work",
+                        )
+                    }
+                })
+                t.Run("TestTheWrongIndex", func(t *testing.T) {
+                    defer func() {
+                        if r := recover(); r != nil {
+                            assert.Contains(t, r.(string), "Attribute `orderBy`.`property` must be usable as index.")
+                            return
+                        }
+                        t.Error("Expected panic, but no panic occurred")
+                    }()
+                    ObjSetters.OrderBy("UnM49", "")
+                })
+                t.Run("TestTheWrongDirection", func(t *testing.T) {
+                    const errMsgDirection = "Attribute `orderBy`.`direction` must be `ASC` " +
+                        "(default if empty string - ``) or `DESC` (case insensitive)"
+                    defer func() {
+                        if r := recover(); r != nil {
+                            assert.Contains(t, r.(string), errMsgDirection)
+                            return
+                        }
+                        t.Error("Expected panic, but no panic occurred")
+                    }()
+                    ObjSetters.OrderBy("InternalCode", "wrong")
+                })
+            })
+        })
+
     })
 }
-
-
-// func TestElibeGeoSets(t *testing.T) {
-//
-// //     geoSet0 := geoCodes.GeoSets().First().ToJson()
-// //     geoSet0 := geoCodes.GeoSets().Get().ToJson()
-// //     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().ToJson()
-//
-// //     geoSet0 := geoCodes.GeoSets().First().ToYaml()
-// //     geoSet0 := geoCodes.GeoSets().Get().ToYaml()
-// //     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().ToYaml()
-//
-//     geoSet0 := geoCodes.GeoSets().First().ToXml()
-// //     geoSet0 := geoCodes.GeoSets().Get().ToXml()
-// //     geoSet0 := geoCodes.GeoSets().WithIndex(geoSetsPrimaryKey).Get().ToXml()
-//
-//
-//
-// //     geoCodes.UseLanguage("it")
-//     fmt.Printf("%v\n", geoSet0)
-// }
