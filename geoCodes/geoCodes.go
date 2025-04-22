@@ -67,6 +67,22 @@ func Currencies() *geoCode {
 }
 
 /******************
+*  Constant Getters Endpoints
+*****************/
+func (gc *geoCode) GetPrimaryKey() string {
+    return lib.GetStructConstants(gc.Reference, "primaryKey").(string)
+}
+
+func (gc *geoCode) GetIndexes() []string {
+    return lib.GetStructConstants(gc.Reference, "indexes").([]string)
+}
+
+func (gc *geoCode) GetFields() []string {
+    return lib.GetStructConstants(gc.Reference, "fields").([]string)
+}
+
+
+/******************
 *  Getters
 *****************/
 type geoCodeResult struct {

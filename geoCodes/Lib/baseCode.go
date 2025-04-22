@@ -72,6 +72,21 @@ func InitializeGeoCodeSet(setStr string) Structs.GeoCodeReference {
     return reference
 }
 
+func GetStructConstants(reference Structs.GeoCodeReference, key string) interface{} {
+    settings := Structs.SettingsMap[geocodesMap[reference].SetType].(Structs.SettingsType)
+    switch key {
+        case "primaryKey":
+            return settings.PrimaryKey
+        case "indexes":
+            return settings.Indexes
+        case "fields":
+            return settings.Public
+        default:
+            logPanicWithStackTrace("STRUCT NOT PRESENT")
+    }
+    return false
+}
+
 func OutPutObject(reference Structs.GeoCodeReference, method string) interface{} {
 	switch method {
         case "get":
