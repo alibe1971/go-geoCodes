@@ -6,6 +6,7 @@ import (
     "github.com/alibe1971/go-geoCodes/geoCodes"
     "github.com/alibe1971/go-geoCodes/geoCodes/Tests/TestLib"
     "fmt"
+    "strings"
     "math/rand"
 )
 
@@ -36,6 +37,10 @@ var countriesExpectedOrderBy = map[string]map[string]string{
         "ASC":  "American Samoa",
         "DESC": "Vatican City State",
     },
+}
+var countriesExpectedLimit = []string{
+    "WS",
+    "XK",
 }
 
 
@@ -642,14 +647,11 @@ func TestCountries(t *testing.T) {
             })
 
             t.Run("TestTheBehaviorOf`.Pick()`WithWrongProperty", func(t *testing.T) {
-                defer func() {
-                    if r := recover(); r != nil {
-                      assert.Contains(t, r.(string), "not found")
-                      return
-                    }
-                    t.Error("Expected panic, but no panic occurred")
-                }()
-                geoCodes.Countries().First().Pick("NotExistentPropertyName")
+                assert.Panics(
+                    t,
+                    func() { _ = geoCodes.Countries().First().Pick("NotExistentPropertyName") },
+                    "expected panic on wrong index",
+                )
             })
         })
 
@@ -857,14 +859,11 @@ func TestCountries(t *testing.T) {
                 })
 
                 t.Run("TestTheWrongIndex", func(t *testing.T) {
-                    defer func() {
-                        if r := recover(); r != nil {
-                          assert.Contains(t, r.(string), "not existent or not usable as index")
-                          return
-                        }
-                        t.Error("Expected panic, but no panic occurred")
-                    }()
-                    ObjSetters.WithIndex("Dependency")
+                    assert.Panics(
+                        t,
+                        func() { _ = ObjSetters.WithIndex("Dependency") },
+                        "expected panic on wrong index",
+                    )
                 })
             })
 
@@ -902,30 +901,172 @@ func TestCountries(t *testing.T) {
                     }
                 })
                 t.Run("TestTheWrongIndex", func(t *testing.T) {
-                    defer func() {
-                        if r := recover(); r != nil {
-                            assert.Contains(t, r.(string), "Attribute `orderBy`.`property` must be usable as index.")
-                            return
-                        }
-                        t.Error("Expected panic, but no panic occurred")
-                    }()
-                    ObjSetters.OrderBy("Dependency", "")
+                    assert.Panics(
+                        t,
+                        func() { _ = ObjSetters.OrderBy("Dependency", "ASC") },
+                        "expected panic on wrong index",
+                    )
                 })
                 t.Run("TestTheWrongDirection", func(t *testing.T) {
-                    const errMsgDirection = "Attribute `orderBy`.`direction` must be `ASC` " +
-                        "(default if empty string - ``) or `DESC` (case insensitive)"
-                    defer func() {
-                        if r := recover(); r != nil {
-                            assert.Contains(t, r.(string), errMsgDirection)
-                            return
+                    assert.Panics(
+                        t,
+                        func() { _ = ObjSetters.OrderBy("Alpha2", "wrong") },
+                        "expected panic on wrong direction",
+                    )
+                })
+            })
+        })
+        t.Run("TestTheSelectSetter", func(t *testing.T) {
+            t.Run("TestTheSingleSelect", func(t *testing.T) {
+                for _, sel := range countriesFields {
+                    got := geoCodes.Countries().Select(sel).First()
+
+                    selParts := strings.Split(sel, ".")
+                    selIsParent := len(selParts) == 1
+                    selIsChild  := len(selParts) > 1
+                    parentOfSel := selParts[0]
+
+                    for _, f := range countriesFields {
+                        fParts := strings.Split(f, ".")
+                        isSame     := f == sel
+                        isChildOfSel := selIsParent  && len(fParts) > 1 && fParts[0] == sel
+                        isParentOfSel:= selIsChild   && f == parentOfSel
+
+                        switch {
+                        // same property
+                        case isSame:
+                            assert.NotPanics(
+                                t,
+                                func() { _ = got.Pick(f) },
+                                "Pick(%q) shouldn't panic", f,
+                            )
+
+                        // Select father → Pick son
+                        case isChildOfSel:
+                            assert.NotPanics(
+                                t,
+                                func() { _ = got.Pick(f) },
+                                "Pick(%q) should not panic (father→son)", f,
+                            )
+
+                        // Select son → Pick father
+                        case isParentOfSel:
+                            assert.NotPanics(
+                                t,
+                                func() { _ = got.Pick(f) },
+                                "Pick(%q) should not panic (son→father)", f,
+                            )
+
+                        // default
+                        default:
+                            assert.Panics(
+                                t,
+                                func() { _ = got.Pick(f) },
+                                "Pick(%q) should panic", f,
+                            )
                         }
-                        t.Error("Expected panic, but no panic occurred")
-                    }()
-                    ObjSetters.OrderBy("Alpha2", "wrong")
+                    }
+                }
+            })
+            t.Run("TestTheAggregateSelect", func(t *testing.T) {
+                for i := range countriesFields {
+                    // I recreate the object from scratch for each i
+                    agg := geoCodes.Countries()
+                    var selected []string
+
+                    // I call .Select() on all fields from 0 to i
+                    for j := 0; j <= i; j++ {
+                        sel := countriesFields[j]
+                        agg = agg.Select(sel)
+                        selected = append(selected, sel)
+                    }
+
+                    got := agg.First()
+
+                    // Test the fields
+                    for _, f := range countriesFields {
+                        if TestLib.ContainsOrRelated(selected, f) {
+                            assert.NotPanics(
+                                t,
+                                func() { _ = got.Pick(f) },
+                                "Pick(%q) should not panic because %v is in selected %v",
+                                f, f, selected,
+                            )
+                        } else {
+                            assert.Panics(
+                                t,
+                                func() { _ = got.Pick(f) },
+                                "Pick(%q) should panic – selected=%v",
+                                f, selected,
+                            )
+                        }
+                    }
+                }
+            })
+        })
+
+        t.Run("TestTheLimitAndOffsetSetter", func(t *testing.T) {
+            t.Run("TestOffsetLimitCount", func(t *testing.T) {
+                tests := []int{
+                    countriesTotalCount - 52,
+                    27,
+                    5,
+                    32,
+                    0,
+                }
+
+                for _, want := range tests {
+                    g := geoCodes.Countries().
+                        Offset(52).
+                        Limit(want)
+
+                    got := g.Count()
+                    assert.Equalf(
+                        t,
+                        want,
+                        got,
+                        "offset=52, limit=%d: expected count == %d, got %d",
+                        want, want, got,
+                    )
+                }
+            })
+            t.Run("TestLimitAndOffsetPropertiesGet", func(t *testing.T) {
+                t.Run("InvalidOffset", func(t *testing.T) {
+                    offset := -5
+                    limit := 20
+                    assert.Panics(
+                        t,
+                        func() { _ = geoCodes.Countries().Offset(offset).Limit(limit) },
+                        "expected panic on Offset(%d)",
+                        offset,
+                    )
+                })
+                t.Run("InvalidLimit", func(t *testing.T) {
+                    offset := 20
+                    limit := -5
+                    assert.Panics(
+                        t,
+                        func() { _ = geoCodes.Countries().Offset(offset).Limit(limit) },
+                        "expected panic on Limit(%d)",
+                        limit,
+                    )
+                })
+                t.Run("ValidOffsetLimit", func(t *testing.T) {
+                    c := geoCodes.Countries().Offset(243).Limit(2)
+                    assert.Equal(t, 2, c.Count())
+                    got := c.Get()
+                    assert.Equal(t, countriesExpectedLimit[0], got.Pick("0.Alpha2"))
+                    assert.Equal(t, countriesExpectedLimit[1], got.Pick("1.Alpha2"))
+                })
+                t.Run("AliasSkipTake", func(t *testing.T) {
+                    c := geoCodes.Countries().Skip(243).Take(2)
+                    assert.Equal(t, 2, c.Count())
+                    got := c.Get()
+                    assert.Equal(t, countriesExpectedLimit[0], got.Pick("0.Alpha2"))
+                    assert.Equal(t, countriesExpectedLimit[1], got.Pick("1.Alpha2"))
                 })
             })
         })
     })
 }
-
 

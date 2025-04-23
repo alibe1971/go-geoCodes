@@ -2,16 +2,10 @@ package TestLib
 
 import (
     "fmt"
-//     "bytes"
     "encoding/json"
     "encoding/xml"
     "gopkg.in/yaml.v3"
-//     "sync"
-//     "os"
-//     "log"
-//     "io"
-//     "runtime/debug"
-//     "io/ioutil"
+    "strings"
 )
 
 var dataMap = make(map[string]interface{})
@@ -63,4 +57,21 @@ func ValidateXML(data []byte) error {
 func ValidateJSON(data []byte) error {
 	var js interface{}
 	return json.Unmarshal(data, &js)
+}
+
+var ContainsOrRelated = func(selected []string, f string) bool {
+    for _, sel := range selected {
+        if sel == f {
+            return true
+        }
+        // if sel is prefix of f (parent field)
+        if strings.HasPrefix(f, sel+".") {
+            return true
+        }
+        // if f is prefix of sel (child field)
+        if strings.HasPrefix(sel, f+".") {
+            return true
+        }
+    }
+    return false
 }

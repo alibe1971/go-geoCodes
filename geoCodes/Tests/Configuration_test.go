@@ -41,25 +41,19 @@ func TestConfiguration(t *testing.T) {
 
 
         t.Run("TryToSetDefaultLanguageWithANotValidLanguage", func(t *testing.T) {
-            defer func() {
-                if r := recover(); r != nil {
-                   assert.Contains(t, r.(string), "not a valid language")
-                   return
-                }
-                t.Error("Expected panic, but no panic occurred")
-            }()
-            geoCodes.SetDefaultLanguage("xyz")
+            assert.Panics(
+                t,
+                func() { geoCodes.SetDefaultLanguage("xyz") },
+                "expected panic on wrong language",
+            )
         })
 
-        t.Run("TryToSetDefaultLanguageWithANotValidLanguage", func(t *testing.T) {
-            defer func() {
-                if r := recover(); r != nil {
-                  assert.Contains(t, r.(string), "not a valid language")
-                  return
-                }
-                t.Error("Expected panic, but no panic occurred")
-            }()
-            geoCodes.UseLanguage("xyz")
+        t.Run("TryToUseANotValidLanguage", func(t *testing.T) {
+            assert.Panics(
+                t,
+                func() { geoCodes.UseLanguage("xyz") },
+                "expected panic on wrong language",
+            )
         })
 
         t.Run("ResetTheLanguages", func(t *testing.T) {

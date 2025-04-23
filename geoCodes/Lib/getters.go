@@ -18,48 +18,7 @@ import (
     "path/filepath"
 )
 
-func filterFields(src interface{}, fieldsToKeep []string) map[string]interface{} {
-	srcValue := reflect.ValueOf(src)
-	filtered := make(map[string]interface{})
-	for _, fieldPath := range fieldsToKeep {
-		fieldParts := strings.Split(fieldPath, ".")
-		currentValue := srcValue
-		var currentField reflect.StructField
-		var found bool
-		for _, part := range fieldParts {
-			if currentValue.Kind() == reflect.Struct {
-				currentField, found = currentValue.Type().FieldByName(part)
-				if found {
-					currentValue = currentValue.FieldByName(part)
-				} else {
-					break
-				}
-			}
-		}
-		if found {
-			if len(fieldParts) == 1 {
-				filtered[currentField.Name] = currentValue.Interface()
-			} else {
-				addNestedField(filtered, fieldParts, currentValue.Interface())
-			}
-		}
-	}
-	return filtered
-}
 
-
-func addNestedField(m map[string]interface{}, fieldParts []string, value interface{}) {
-	if len(fieldParts) == 1 {
-		m[fieldParts[0]] = value
-		return
-	}
-	if _, ok := m[fieldParts[0]]; !ok {
-		m[fieldParts[0]] = make(map[string]interface{})
-	}
-	if nestedMap, ok := m[fieldParts[0]].(map[string]interface{}); ok {
-		addNestedField(nestedMap, fieldParts[1:], value)
-	}
-}
 
 func getXsd(name string) ([]byte, error) {
     moduleDir, err := filepath.Abs(filepath.Dir("."))
@@ -124,10 +83,9 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
         case "xsdSingle":
             toStringData, err = getXsd(itemTag)
         case "json":
-//             toStringData, err = json.MarshalIndent(data, "", "  ")
             var buf bytes.Buffer
             enc := json.NewEncoder(&buf)
-            enc.SetEscapeHTML(false)       // <<--- disabilita l’escaping di <, >, &
+            enc.SetEscapeHTML(false)
             enc.SetIndent("", "  ")
             if err = enc.Encode(data); err != nil {
                 return "", err
@@ -175,19 +133,6 @@ func getSelectedFields(reference Structs.GeoCodeReference) []string {
     } else {
         return geocodesMap[reference].SetEnquiries.Select
     }
-}
-
-
-var processMap = map[string]func(interface{}, []string) map[string]interface{}{
-    "countries": func(item interface{}, selectedFields []string) map[string]interface{} {
-        return filterFields(item.(Structs.Country), selectedFields)
-    },
-    "geoSets": func(item interface{}, selectedFields []string) map[string]interface{} {
-        return filterFields(item.(Structs.GeoSet), selectedFields)
-    },
-    "currencies": func(item interface{}, selectedFields []string) map[string]interface{} {
-        return filterFields(item.(Structs.Currency), selectedFields)
-    },
 }
 
 func compareItems(a, b interface{}, orderBy string, direction string, collator *collate.Collator) bool {
@@ -281,6 +226,8 @@ func getGeoCodeData(
         limit = 1
     }
 
+    var selectedFields []string = getSelectedFields(reference)
+
     // --- 6) Costruisco result da “clean”
     in, out := 0, 0
     for _, e := range entries {
@@ -294,7 +241,7 @@ func getGeoCodeData(
         }
 
         if onlyFirst {
-            return e.clean
+            return filterFieldsMap(e.clean.(map[string]interface{}), selectedFields)
         }
 
         switch r := result.(type) {
@@ -305,14 +252,14 @@ func getGeoCodeData(
             }
             idxName := *geocodesMap[reference].SetEnquiries.Index
             key     := e.raw.FieldByName(idxName).String()
-            r[key]  = m
+            r[key]  = filterFieldsMap(m, selectedFields)
 
         case []map[string]interface{}:
             m, ok := e.clean.(map[string]interface{})
             if !ok {
                 continue
             }
-            result = append(r, m)
+            result = append(r, filterFieldsMap(m, selectedFields))
         }
     }
 
@@ -380,4 +327,57 @@ func pickPropertyValueFromPath(data interface{}, path string) (interface{}, erro
         return value, nil
     }
     return "", fmt.Errorf("Path %q not found", path)
+}
+
+
+/****/
+
+// addNestedField come prima, copia il valore v in out,
+// costruendo le map annidate per ciascuna "parte" del percorso.
+func addNestedField(out map[string]interface{}, parts []string, v interface{}) {
+    if len(parts) == 1 {
+        out[parts[0]] = v
+        return
+    }
+    head, tail := parts[0], parts[1:]
+    m, ok := out[head].(map[string]interface{})
+    if !ok {
+        m = make(map[string]interface{})
+        out[head] = m
+    }
+    addNestedField(m, tail, v)
+}
+
+// filterFieldsMap prende in input una semplice map[string]interface{}
+// e una slice di path “dot‐notation” e restituisce una nuova map
+// contenente solo quelle chiavi (anche annidate) che gli chiedi.
+func filterFieldsMap(src map[string]interface{}, fieldsToKeep []string) map[string]interface{} {
+    out := make(map[string]interface{}, len(fieldsToKeep))
+
+    for _, path := range fieldsToKeep {
+        parts := strings.Split(path, ".")
+        var curr interface{} = src
+        ok := true
+
+        // percorro tutti i pezzi tranne l’ultimo, cercando map[string]interface{}
+        for _, p := range parts {
+            m, isMap := curr.(map[string]interface{})
+            if !isMap {
+                ok = false
+                break
+            }
+            curr, ok = m[p]
+            if !ok {
+                break
+            }
+        }
+        if !ok {
+           	continue
+        }
+
+        // se sono arrivato qui, "curr" è il valore vero da copiare
+        addNestedField(out, parts, curr)
+    }
+
+    return out
 }

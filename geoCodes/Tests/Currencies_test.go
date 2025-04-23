@@ -6,6 +6,7 @@ import (
     "github.com/alibe1971/go-geoCodes/geoCodes"
     "github.com/alibe1971/go-geoCodes/geoCodes/Tests/TestLib"
     "fmt"
+    "strings"
     "math/rand"
 )
 
@@ -26,6 +27,10 @@ var currenciesExpectedOrderBy = map[string]map[string]string{
         "ASC":  "ADB Unit of Account",
         "DESC": "Zloty",
     },
+}
+var currenciesExpectedLimit = []string{
+    "BTN",
+    "BWP",
 }
 
 
@@ -192,14 +197,11 @@ func TestCurrencies(t *testing.T) {
                 )
             })
             t.Run("TestTheBehaviorOf`.Pick()`WithWrongProperty", func(t *testing.T) {
-                defer func() {
-                    if r := recover(); r != nil {
-                      assert.Contains(t, r.(string), "not found")
-                      return
-                    }
-                    t.Error("Expected panic, but no panic occurred")
-                }()
-                geoCodes.Currencies().First().Pick("NotExistentPropertyName")
+                assert.Panics(
+                    t,
+                    func() { _ = geoCodes.Currencies().First().Pick("NotExistentPropertyName") },
+                    "expected panic on wrong index",
+                )
             })
         })
 
@@ -395,14 +397,11 @@ func TestCurrencies(t *testing.T) {
                 })
 
                 t.Run("TestTheWrongIndex", func(t *testing.T) {
-                    defer func() {
-                        if r := recover(); r != nil {
-                          assert.Contains(t, r.(string), "not existent or not usable as index")
-                          return
-                        }
-                        t.Error("Expected panic, but no panic occurred")
-                    }()
-                    ObjSetters.WithIndex("Symbol")
+                    assert.Panics(
+                        t,
+                        func() { _ = ObjSetters.WithIndex("Symbol") },
+                        "expected panic on wrong index",
+                    )
                 })
             })
 
@@ -440,29 +439,173 @@ func TestCurrencies(t *testing.T) {
                     }
                 })
                 t.Run("TestTheWrongIndex", func(t *testing.T) {
-                    defer func() {
-                        if r := recover(); r != nil {
-                            assert.Contains(t, r.(string), "Attribute `orderBy`.`property` must be usable as index.")
-                            return
-                        }
-                        t.Error("Expected panic, but no panic occurred")
-                    }()
-                    ObjSetters.OrderBy("Symbol", "")
+                    assert.Panics(
+                        t,
+                        func() { _ = ObjSetters.OrderBy("Symbol", "") },
+                        "expected panic on wrong index",
+                    )
                 })
                 t.Run("TestTheWrongDirection", func(t *testing.T) {
-                    const errMsgDirection = "Attribute `orderBy`.`direction` must be `ASC` " +
-                        "(default if empty string - ``) or `DESC` (case insensitive)"
-                    defer func() {
-                        if r := recover(); r != nil {
-                            assert.Contains(t, r.(string), errMsgDirection)
-                            return
-                        }
-                        t.Error("Expected panic, but no panic occurred")
-                    }()
-                    ObjSetters.OrderBy("IsoAlpha", "wrong")
+                    assert.Panics(
+                        t,
+                        func() { _ = ObjSetters.OrderBy("IsoAlpha", "wrong") },
+                        "expected panic on wrong direction",
+                    )
                 })
             })
         })
+        t.Run("TestTheSelectSetter", func(t *testing.T) {
+            t.Run("TestTheSingleSelect", func(t *testing.T) {
+                for _, sel := range currenciesFields {
+                    got := geoCodes.Currencies().Select(sel).First()
 
+                    selParts := strings.Split(sel, ".")
+                    selIsParent := len(selParts) == 1
+                    selIsChild  := len(selParts) > 1
+                    parentOfSel := selParts[0]
+
+                    for _, f := range currenciesFields {
+                        fParts := strings.Split(f, ".")
+                        isSame     := f == sel
+                        isChildOfSel := selIsParent  && len(fParts) > 1 && fParts[0] == sel
+                        isParentOfSel:= selIsChild   && f == parentOfSel
+
+                        switch {
+                        // same property
+                        case isSame:
+                            assert.NotPanics(
+                                t,
+                                func() { _ = got.Pick(f) },
+                                "Pick(%q) shouldn't panic", f,
+                            )
+
+                        // Select father → Pick son
+                        case isChildOfSel:
+                            assert.NotPanics(
+                                t,
+                                func() { _ = got.Pick(f) },
+                                "Pick(%q) should not panic (father→son)", f,
+                            )
+
+                        // Select son → Pick father
+                        case isParentOfSel:
+                            assert.NotPanics(
+                                t,
+                                func() { _ = got.Pick(f) },
+                                "Pick(%q) should not panic (son→father)", f,
+                            )
+
+                        // default
+                        default:
+                            assert.Panics(
+                                t,
+                                func() { _ = got.Pick(f) },
+                                "Pick(%q) should panic", f,
+                            )
+                        }
+                    }
+                }
+            })
+            t.Run("TestTheAggregateSelect", func(t *testing.T) {
+                for i := range currenciesFields {
+                    // I recreate the object from scratch for each i
+                    agg := geoCodes.Currencies()
+                    var selected []string
+
+                    // I call .Select() on all fields from 0 to i
+                    for j := 0; j <= i; j++ {
+                        sel := currenciesFields[j]
+                        agg = agg.Select(sel)
+                        selected = append(selected, sel)
+                    }
+
+                    got := agg.First()
+
+                    // Test the fields
+                    for _, f := range currenciesFields {
+                        if TestLib.ContainsOrRelated(selected, f) {
+                            assert.NotPanics(
+                                t,
+                                func() { _ = got.Pick(f) },
+                                "Pick(%q) should not panic because %v is in selected %v",
+                                f, f, selected,
+                            )
+                        } else {
+                            assert.Panics(
+                                t,
+                                func() { _ = got.Pick(f) },
+                                "Pick(%q) should panic – selected=%v",
+                                f, selected,
+                            )
+                        }
+                    }
+                }
+            })
+        })
+        t.Run("TestTheLimitAndOffsetSetter", func(t *testing.T) {
+            t.Run("TestOffsetLimitCount", func(t *testing.T) {
+                tests := []int{
+                    currenciesTotalCount - 21,
+                    27,
+                    5,
+                    32,
+                    0,
+                }
+
+                for _, want := range tests {
+                    g := geoCodes.Currencies().
+                        Offset(21).
+                        Limit(want)
+
+                    got := g.Count()
+                    assert.Equalf(
+                        t,
+                        want,
+                        got,
+                        "offset=52, limit=%d: expected count == %d, got %d",
+                        want, want, got,
+                    )
+                }
+            })
+            t.Run("TestLimitAndOffsetPropertiesGet", func(t *testing.T) {
+                t.Run("InvalidOffset", func(t *testing.T) {
+                    offset := -5
+                    limit := 20
+                    assert.Panics(
+                        t,
+                        func() { _ = geoCodes.Currencies().Offset(offset).Limit(limit) },
+                        "expected panic on Offset(%d)",
+                        offset,
+                    )
+                })
+                t.Run("InvalidLimit", func(t *testing.T) {
+                    offset := 20
+                    limit := -5
+                    assert.Panics(
+                        t,
+                        func() { _ = geoCodes.Currencies().Offset(offset).Limit(limit) },
+                        "expected panic on Limit(%d)",
+                        limit,
+                    )
+                })
+                t.Run("ValidOffsetLimit", func(t *testing.T) {
+                    c := geoCodes.Currencies().Offset(22).Limit(2)
+                    assert.Equal(t, 2, c.Count())
+                    got := c.Get()
+                    assert.Equal(t, currenciesExpectedLimit[0], got.Pick("0.IsoAlpha"))
+                    assert.Equal(t, currenciesExpectedLimit[1], got.Pick("1.IsoAlpha"))
+                })
+                t.Run("AliasSkipTake", func(t *testing.T) {
+                    c := geoCodes.Currencies().Skip(22).Take(2)
+                    assert.Equal(t, 2, c.Count())
+                    got := c.Get()
+                    assert.Equal(t, currenciesExpectedLimit[0], got.Pick("0.IsoAlpha"))
+                    assert.Equal(t, currenciesExpectedLimit[1], got.Pick("1.IsoAlpha"))
+                })
+            })
+        })
     })
 }
+
+
+
