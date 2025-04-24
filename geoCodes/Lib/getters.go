@@ -5,7 +5,7 @@ import (
     "encoding/json"
     "encoding/xml"
     "bytes"
-    "gopkg.in/yaml.v2"
+    "gopkg.in/yaml.v3"
     "strings"
     "reflect"
     Structs "github.com/alibe1971/go-geoCodes/geoCodes/Structs"
@@ -95,7 +95,8 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
             outerMap := map[string]interface{}{
                 instanceTag: data,
             }
-            toStringData, err = yaml.Marshal(outerMap)
+//             toStringData, err = yaml.Marshal(outerMap)
+            toStringData, err = toYAML(outerMap)
         case "xml":
             jsonBytes, err := json.Marshal(data)
             if err != nil {
@@ -124,6 +125,19 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
         return "", err
     }
     return string(toStringData), nil
+}
+
+func toYAML(data interface{}) ([]byte, error) {
+    var buf bytes.Buffer
+    enc := yaml.NewEncoder(&buf)
+    defer enc.Close()          // assicura che il documento venga chiuso correttamente
+
+    enc.SetIndent(2)           // usa 2 spazi di indentazione
+
+    if err := enc.Encode(data); err != nil {
+        return nil, err
+    }
+    return buf.Bytes(), nil
 }
 
 

@@ -27,7 +27,8 @@ type Country struct {
 }
 
 type Flags struct {
-	Svg string `json:"svg" yaml:"svg" xml:"svg"`
+	Emoji   string `json:"emoji" yaml:"emoji" xml:"emoji"`
+	Svg     string `json:"svg" yaml:"svg" xml:"svg"`
 }
 
 type Mottos struct {
@@ -65,6 +66,7 @@ var CountrySettings = SettingsType {
         "Alpha3",
         "UnM49",
         "Flags",
+        "Flags.Emoji",
         "Flags.Svg",
         "Dependency",
         "Mottos",
@@ -120,6 +122,9 @@ var MapBuildXmlCountry = map[string]XmlFieldMapping{
     "flags": {
         TagName: "flags",
         Children: map[string]XmlFieldMapping{
+            "emoji": {
+                TagName: "emoji",
+            },
             "svg": {
                 TagName: "svg",
                 CDATA:   true,

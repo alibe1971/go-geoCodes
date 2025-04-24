@@ -143,6 +143,15 @@ func TestBaseDataStructure(t *testing.T) {
 
                     /** flags **/
                     t.Run("CheckTheFlagProperty", func(t *testing.T) {
+                        t.Run("CheckTheFlagEmojiProperty", func(t *testing.T) {
+                            assert.NotEmpty(t, cc.Flags.Emoji, "flags.Emoji must not be empty")
+                            assert.Regexp(
+                                t,
+                                "^[\U0001F1E6-\U0001F1FF]{2}$",
+                                cc.Flags.Emoji,
+                                "Flags.Svg must be a Regional Indicator Symbols string",
+                            )
+                        })
                         t.Run("CheckTheFlagSvgProperty", func(t *testing.T) {
                             assert.NotEmpty(t, cc.Flags.Svg, "flags.Svg must not be empty")
                             assert.True(t, TestLib.IsValidSVG(cc.Flags.Svg), "Flags.Svg must be a valid Svg")
