@@ -95,8 +95,11 @@ func getDataOnString(reference Structs.GeoCodeReference, data interface{}, metho
             outerMap := map[string]interface{}{
                 instanceTag: data,
             }
-//             toStringData, err = yaml.Marshal(outerMap)
-            toStringData, err = toYAML(outerMap)
+            var yamlRaw []byte
+            yamlRaw, err = toYAML(outerMap)
+            if err == nil {
+                toStringData, err = fixEmojiField4Yaml(yamlRaw)
+            }
         case "xml":
             jsonBytes, err := json.Marshal(data)
             if err != nil {

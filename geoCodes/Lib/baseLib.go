@@ -15,6 +15,7 @@ import(
     "bytes"
     "strings"
     "strconv"
+    "regexp"
     "unicode"
     Structs "github.com/alibe1971/go-geoCodes/geoCodes/Structs"
 )
@@ -748,4 +749,31 @@ func getPathValue(current interface{}, parts []string) (interface{}, bool) {
         }
         return nil, false
     }
+}
+
+
+func fixEmojiField4Yaml(yamlData []byte) ([]byte, error) {
+	re := regexp.MustCompile(`(?m)^(\s*emoji:\s+)"((?:\\U[0-9A-Fa-f]{8})+)"`)
+
+	return re.ReplaceAllFunc(yamlData, func(line []byte) []byte {
+		matches := re.FindSubmatch(line)
+		if len(matches) != 3 {
+			return line
+		}
+
+		escaped := string(matches[2]) // es: \U0001F1E6\U0001F1E9
+
+		reSeq := regexp.MustCompile(`\\U([0-9A-Fa-f]{8})`)
+		decoded := reSeq.ReplaceAllStringFunc(escaped, func(seq string) string {
+			hex := seq[2:] // salta "\U"
+			codepoint, err := strconv.ParseInt(hex, 16, 32)
+			if err != nil {
+				return seq
+			}
+			return string(rune(codepoint))
+		})
+
+		// ricostruisce la riga: stessa indentazione + emoji decodificata
+		return []byte(string(matches[1]) + `"` + decoded + `"`)
+	}), nil
 }
