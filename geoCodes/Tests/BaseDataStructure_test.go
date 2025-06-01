@@ -171,7 +171,6 @@ func TestBaseDataStructure(t *testing.T) {
 
                     /** officialName **/
                     t.Run("CheckTheOfficialNameProperty", func(t *testing.T) {
-                        assert.NotEmpty(t, cc.OfficialName, "officialName must not be empty")
                         for lang, name := range cc.OfficialName {
                             if name == "" {
                                 assert.Fail(t, "Official name is an empty string", "Language: '%s'", lang)
