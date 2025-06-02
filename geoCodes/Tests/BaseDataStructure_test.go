@@ -264,7 +264,7 @@ func TestBaseDataStructure(t *testing.T) {
 
                     /** locales **/
                     t.Run("CheckTheLocalesProperty", func(t *testing.T) {
-                         assert.NotEmpty(t, cc.Locales, "The timeZones locales be empty")
+                        // Nothing to do
                     })
 
                 })

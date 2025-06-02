@@ -21,7 +21,7 @@ type Country struct {
     CcTld           *string                 `json:"ccTld" yaml:"ccTld" xml:"ccTld"`
     TimeZones       []string                `json:"timeZones" yaml:"timeZones" xml:"timeZones>tz"`
     Languages       []string                `json:"languages" yaml:"languages" xml:"languages>lang"`
-    Locales         []string                `json:"locales" yaml:"locales" xml:"locales>locale"`
+    LocalesIcu      []string                `json:"localesIcu" yaml:"localesIcu" xml:"localesIcu>locale"`
     OtherAppsIds    OtherAppsIds            `json:"otherAppsIds" yaml:"otherAppsIds" xml:"otherAppsIds"`
     Keywords        []string                `json:"keywords" yaml:"keywords" xml:"keywords"`
 }
@@ -80,7 +80,7 @@ var CountrySettings = SettingsType {
         "CcTld",
         "TimeZones",
         "Languages",
-        "Locales",
+        "LocalesIcu",
         "OtherAppsIds",
         "OtherAppsIds.GeoNamesOrg",
     },
@@ -235,8 +235,8 @@ var MapBuildXmlCountry = map[string]XmlFieldMapping{
             },
         },
     },
-    "locales": {
-        TagName: "locales",
+    "localesIcu": {
+        TagName: "localesIcu",
         Children: map[string]XmlFieldMapping{
             "locale": {
                 TagName: "locale",

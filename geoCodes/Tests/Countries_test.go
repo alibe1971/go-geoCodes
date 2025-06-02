@@ -218,15 +218,15 @@ func TestCountries(t *testing.T) {
 
                 assert.Equal(
                     t,
-                    countryTypeAssertion["Locales"],
-                    countries.Pick("0.Locales"),
-                    "Wrong match for `Locales`",
+                    countryTypeAssertion["LocalesIcu"],
+                    countries.Pick("0.LocalesIcu"),
+                    "Wrong match for `LocalesIcu`",
                 )
                 assert.Equal(
                     t,
-                    countryTypeAssertion["Locales"].([]interface{})[0],
-                    countries.Pick("0.Locales.0"),
-                    "Wrong match for `Locales.0`",
+                    countryTypeAssertion["LocalesIcu"].([]interface{})[0],
+                    countries.Pick("0.LocalesIcu.0"),
+                    "Wrong match for `LocalesIcu.0`",
                 )
 
                 assert.Equal(
@@ -400,15 +400,15 @@ func TestCountries(t *testing.T) {
 
                 assert.Equal(
                     t,
-                    countryTypeAssertion["Locales"],
-                    countries.Pick("AE.Locales"),
-                    "Wrong match for `Locales`",
+                    countryTypeAssertion["LocalesIcu"],
+                    countries.Pick("AE.LocalesIcu"),
+                    "Wrong match for `LocalesIcu`",
                 )
                 assert.Equal(
                     t,
-                    countryTypeAssertion["Locales"].([]interface{})[0],
-                    countries.Pick("AE.Locales.0"),
-                    "Wrong match for `Locales.0`",
+                    countryTypeAssertion["LocalesIcu"].([]interface{})[0],
+                    countries.Pick("AE.LocalesIcu.0"),
+                    "Wrong match for `LocalesIcu.0`",
                 )
 
                 assert.Equal(
@@ -582,15 +582,15 @@ func TestCountries(t *testing.T) {
 
             assert.Equal(
                 t,
-                countryTypeAssertion["Locales"],
-                country.Pick("Locales"),
-                "Wrong match for `Locales`",
+                countryTypeAssertion["LocalesIcu"],
+                country.Pick("LocalesIcu"),
+                "Wrong match for `LocalesIcu`",
             )
             assert.Equal(
                 t,
-                countryTypeAssertion["Locales"].([]interface{})[0],
-                country.Pick("Locales.0"),
-                "Wrong match for `Locales.0`",
+                countryTypeAssertion["LocalesIcu"].([]interface{})[0],
+                country.Pick("LocalesIcu.0"),
+                "Wrong match for `LocalesIcu.0`",
             )
 
             assert.Equal(
@@ -1069,4 +1069,5 @@ func TestCountries(t *testing.T) {
         })
     })
 }
+
 
