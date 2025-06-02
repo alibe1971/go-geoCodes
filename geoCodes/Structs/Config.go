@@ -9,7 +9,7 @@ type Settings struct {
 }
 
 type ConfigLanguages struct {
-    InPackage map[string]string `json:"inPackage"`
+    InPackage []string  `json:"inPackage"`
     Default   string    `json:"default"`
 }
 

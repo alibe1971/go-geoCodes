@@ -223,10 +223,7 @@ func getGeoCodeData(
     // --- 4) Ordina col collator
     orderBy  := geocodesMap[reference].SetEnquiries.OrderBy.Property
     orderDir := geocodesMap[reference].SetEnquiries.OrderBy.OrderType
-    langTag  := language.Make(
-        getData("config").(*Structs.Config).
-            Settings.Languages.InPackage[currentLanguage],
-    )
+    langTag  := language.Make(currentLanguage)
     collator := collate.New(langTag)
     sort.Slice(entries, func(i, j int) bool {
         return compareItems(

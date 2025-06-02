@@ -10,7 +10,6 @@ import (
 func initializeGeoCodeSet(setStr string) (*Structs.GeoCode, error) {
     var SetObject map[string]interface{}
     var primaryKey string
-    locale := getData("config").(*Structs.Config).Settings.Languages.InPackage[currentLanguage]
     switch setStr {
         case "countries":
             SetObject = initializeGeoCode(setStr, data.Countries, &Structs.Countries{}, transData.Countries, reflect.TypeOf(Structs.TransCountries{}))
@@ -26,7 +25,7 @@ func initializeGeoCodeSet(setStr string) (*Structs.GeoCode, error) {
     return &Structs.GeoCode{
         SetType:        setStr,
         SetObject:      SetObject,
-        SetLocale:      locale,
+        SetLocale:      currentLanguage,
         SetEnquiries:   Structs.Enquiries {
             Interval: Structs.IntervalStruct{
                 Offset: 0,

@@ -21,12 +21,7 @@ func Initialize() {
     superDefaultLanguage = languages.Default
     defaultLanguage = superDefaultLanguage
     currentLanguage = superDefaultLanguage
-
-    keys := make([]string, 0, len(languages.InPackage))
-    for key := range languages.InPackage {
-        keys = append(keys, key)
-    }
-    availableLanguages = keys
+    availableLanguages = languages.InPackage
 }
 
 func GetLanguages(typeStr string) interface{} {

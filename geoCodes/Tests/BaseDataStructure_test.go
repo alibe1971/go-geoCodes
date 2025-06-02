@@ -91,10 +91,10 @@ func TestBaseDataStructure(t *testing.T) {
 
         t.Run("CheckTheDataConfigStructure", func(t *testing.T) {
             translations = make([]string, 0, len(cfg.Settings.Languages.InPackage))
-            for key, locale := range cfg.Settings.Languages.InPackage {
-                assert.True(t, regexp.MustCompile(`^[a-z]{2}(_[A-Za-z]+)*(_[A-Z]{2})?$`).MatchString(locale),
-                    fmt.Sprintf("Wrong format for locale: %s", locale))
-                translations = append(translations, key)
+            for _, lang := range cfg.Settings.Languages.InPackage {
+                assert.True(t, regexp.MustCompile(`^[a-z]{2}(_[A-Za-z]+)*(_[A-Z]{2})?$`).MatchString(lang),
+                    fmt.Sprintf("Wrong format for language code: %s", lang))
+                translations = append(translations, lang)
             }
             assert.Equal(t, "en", cfg.Settings.Languages.Default, "Default should be 'en'")
         })
