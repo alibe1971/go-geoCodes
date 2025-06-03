@@ -32,7 +32,10 @@ type Flags struct {
 }
 
 type Mottos struct {
-	Official map[string]string  `json:"official" yaml:"official" xml:"official"`
+	Official map[string]string       `json:"official" yaml:"official" xml:"official"`
+	Popular map[string]string       `json:"popular" yaml:"popular" xml:"popular"`
+	Royal map[string]string         `json:"royal" yaml:"royal" xml:"royal"`
+	Presidential map[string]string  `json:"presidential" yaml:"presidential" xml:"presidential"`
 }
 
 type CcCurrencies struct {
@@ -71,6 +74,9 @@ var CountrySettings = SettingsType {
         "Dependency",
         "Mottos",
         "Mottos.Official",
+        "Mottos.Popular",
+        "Mottos.Royal",
+        "Mottos.Presidential",
         "Currencies",
         "Currencies.LegalTenders",
         "Currencies.WidelyAccepted",
@@ -146,6 +152,33 @@ var MapBuildXmlCountry = map[string]XmlFieldMapping{
                     },
                 },
             },
+            "popular": {
+                TagName: "popular",
+                Children: map[string]XmlFieldMapping{
+                    "motto": {
+                        TagName: "motto",
+                        AttrName: "lang", // L'attributo "lang" per il motto
+                    },
+                },
+            },
+            "royal": {
+                TagName: "royal",
+                Children: map[string]XmlFieldMapping{
+                    "motto": {
+                        TagName: "motto",
+                        AttrName: "lang", // L'attributo "lang" per il motto
+                    },
+                },
+            },
+            "presidential": {
+                TagName: "presidential",
+                Children: map[string]XmlFieldMapping{
+                    "motto": {
+                        TagName: "motto",
+                        AttrName: "lang", // L'attributo "lang" per il motto
+                    },
+                },
+            }
         },
     },
     "currencies": {
