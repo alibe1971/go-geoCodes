@@ -178,7 +178,7 @@ var MapBuildXmlCountry = map[string]XmlFieldMapping{
                         AttrName: "lang", // L'attributo "lang" per il motto
                     },
                 },
-            }
+            },
         },
     },
     "currencies": {
