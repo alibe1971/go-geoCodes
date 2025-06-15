@@ -16,8 +16,8 @@ var geoSetsIndexes []string = geoCodes.GeoSets().GetIndexes()
 var geoSetsFields []string = geoCodes.GeoSets().GetFields()
 var geoSetsExpectedOrderBy = map[string]map[string]string{
     "InternalCode": {
-        "ASC":  "CONV-G20",
-        "DESC": "ZONE-EZ",
+        "ASC":  "CONV-EZ",
+        "DESC": "ORGS-WTO",
     },
     "Name": {
         "ASC":  "Africa",
@@ -25,8 +25,8 @@ var geoSetsExpectedOrderBy = map[string]map[string]string{
     },
 }
 var geoSetsExpectedLimit = []string{
+    "GEOG-AS-SE",
     "GEOG-AS-SO",
-    "GEOG-AS-WE",
 }
 
 func TestGeoSets(t *testing.T) {
@@ -612,5 +612,3 @@ func TestGeoSets(t *testing.T) {
         })
     })
 }
-
-
