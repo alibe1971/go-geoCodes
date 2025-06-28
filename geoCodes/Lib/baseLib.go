@@ -351,232 +351,177 @@ func mapToXML(
 }
 
 func buildXMLForField(
-    val interface{},
-    mapping Structs.XmlFieldMapping,
-    indentLevel int,
+	val interface{},
+	mapping Structs.XmlFieldMapping,
+	indentLevel int,
 ) (string, error) {
+	var sb strings.Builder
+	tagName := mapping.TagName
+	if tagName == "" {
+		tagName = mapping.Field
+	}
+	switch actual := val.(type) {
 
-    var sb strings.Builder
-    tagName := mapping.TagName
-    if tagName == "" {
-        tagName = mapping.Field
-    }
+	case nil:
+		sb.WriteString(indentString(indentLevel))
+		sb.WriteString("<" + tagName + "></" + tagName + ">\n")
+		return sb.String(), nil
 
-    switch actual := val.(type) {
+	case float64:
+		var strVal string
+		if mapping.AsInt {
+			strVal = fmt.Sprintf("%d", int64(actual))
+		} else {
+			strVal = fmt.Sprintf("%v", actual)
+		}
+		sb.WriteString(indentString(indentLevel))
+		sb.WriteString("<" + tagName + ">")
+		if mapping.CDATA && strVal != "" {
+			sb.WriteString("<![CDATA[" + strVal + "]]>")
+		} else {
+			sb.WriteString(strVal)
+		}
+		sb.WriteString("</" + tagName + ">\n")
+		return sb.String(), nil
 
-    // Caso 1: valore nil ⇒ tag vuoto
-    case nil:
-        sb.WriteString(indentString(indentLevel))
-        sb.WriteString("<" + tagName + "></" + tagName + ">\n")
-        return sb.String(), nil
+	case string, int, int64, bool:
+		strVal := fmt.Sprintf("%v", actual)
+		sb.WriteString(indentString(indentLevel))
+		sb.WriteString("<" + tagName + ">")
+		if mapping.CDATA && strVal != "" {
+			sb.WriteString("<![CDATA[" + strVal + "]]>")
+		} else {
+			sb.WriteString(strVal)
+		}
+		sb.WriteString("</" + tagName + ">\n")
+		return sb.String(), nil
 
-    // ---- A) float64 con gestione AsInt
-    case float64:
-        // Se AsInt = true, lo stampiamo come intero
-        var strVal string
-        if mapping.AsInt {
-            // Converte forzatamente in int64
-            intVal := int64(actual)
-            strVal = fmt.Sprintf("%d", intVal)
-        } else {
-            // Altrimenti, stampa in modo "normale"
-            // Se preferisci niente notazione scientifica, puoi usare:
-            // strVal = strconv.FormatFloat(actual, 'f', -1, 64)
-            // Oppure semplice "%v".
-            strVal = fmt.Sprintf("%v", actual)
-        }
+	case []interface{}:
+		sb.WriteString(indentString(indentLevel))
+		sb.WriteString("<" + tagName + ">\n")
 
-        sb.WriteString(indentString(indentLevel))
-        sb.WriteString("<" + tagName + ">")
-        if mapping.CDATA && strVal != "" {
-            sb.WriteString("<![CDATA[")
-            sb.WriteString(strVal)
-            sb.WriteString("]]>")
-        } else {
-            sb.WriteString(strVal)
-        }
-        sb.WriteString("</" + tagName + ">\n")
-        return sb.String(), nil
+		for _, elem := range actual {
+			if len(mapping.Children) == 1 {
+				var theChild Structs.XmlFieldMapping
+				for _, cMap := range mapping.Children {
+					theChild = cMap
+					break
+				}
+				subXML, err := buildXMLForField(elem, theChild, indentLevel+1)
+				if err != nil {
+					return "", err
+				}
+				sb.WriteString(subXML)
+			} else {
+				sb.WriteString(indentString(indentLevel+1))
+				sb.WriteString("<item>" + fmt.Sprintf("%v", elem) + "</item>\n")
+			}
+		}
 
-    // ---- B) Altri tipi "scalari"
-    case string, int, int64, bool:
-        strVal := fmt.Sprintf("%v", actual)
-        sb.WriteString(indentString(indentLevel))
-        sb.WriteString("<" + tagName + ">")
-        if mapping.CDATA && strVal != "" {
-            sb.WriteString("<![CDATA[")
-            sb.WriteString(strVal)
-            sb.WriteString("]]>")
-        } else {
-            sb.WriteString(strVal)
-        }
-        sb.WriteString("</" + tagName + ">\n")
-        return sb.String(), nil
+		sb.WriteString(indentString(indentLevel))
+		sb.WriteString("</" + tagName + ">\n")
+		return sb.String(), nil
 
-    // ---- C) slice/array generico
-    case []interface{}:
-        sb.WriteString(indentString(indentLevel))
-        sb.WriteString("<" + tagName + ">\n")
+	case map[string]interface{}:
+		if allStrings(actual) && shouldConvertToMapStringString(mapping) {
+			conv := make(map[string]string)
+			for k, rawVal := range actual {
+				conv[k] = rawVal.(string)
+			}
+			return buildXMLForField(conv, mapping, indentLevel)
+		}
+		sb.WriteString(indentString(indentLevel))
+		sb.WriteString("<" + tagName + ">\n")
+		for childName, childMap := range mapping.Children {
+			childVal := extractFieldValue(actual, childName)
+			if childVal == notFound {
+				continue
+			}
+			subXML, err := buildXMLForField(childVal, childMap, indentLevel+1)
+			if err != nil {
+				return "", err
+			}
+			sb.WriteString(subXML)
+		}
+		sb.WriteString(indentString(indentLevel))
+		sb.WriteString("</" + tagName + ">\n")
+		return sb.String(), nil
 
-        for _, elem := range actual {
-            // Se esiste un mapping.Children, occorre decidere:
-            // 1) Se l’elem è un oggetto (map), allora ha senso fare la mini mappa
-            // 2) Se è uno scalare (string, int, ecc.), passiamo il valore diretto
+	case map[string]string:
+		sb.WriteString(indentString(indentLevel))
+		sb.WriteString("<" + tagName + ">\n")
+		if len(mapping.Children) == 1 {
+			var soleChild Structs.XmlFieldMapping
+			for _, c := range mapping.Children {
+				soleChild = c
+				break
+			}
+			childTag := soleChild.TagName
+			if childTag == "" {
+				childTag = soleChild.Field
+			}
+			attr := soleChild.AttrName
 
-            if len(mapping.Children) == 1 {
-                // Di solito abbiamo 1 child field "tz" o simile
-                // Recuperiamo l’unico childMap
-                var theChildName string
-                var theChild Structs.XmlFieldMapping
-                for cName, cMap := range mapping.Children {
-                    theChildName = cName
-                    theChild = cMap
-                    break
-                }
+			for k, v := range actual {
+				sb.WriteString(indentString(indentLevel+1))
+				sb.WriteString("<" + childTag)
+				if attr != "" {
+					sb.WriteString(" " + attr + "=\"" + k + "\"")
+				}
+				sb.WriteString(">")
+				if soleChild.CDATA && v != "" {
+					sb.WriteString("<![CDATA[" + v + "]]>")
+				} else {
+					sb.WriteString(v)
+				}
+				sb.WriteString("</" + childTag + ">\n")
+			}
+		}
+		sb.WriteString(indentString(indentLevel))
+		sb.WriteString("</" + tagName + ">\n")
+		return sb.String(), nil
 
-                // Controlliamo se elem è un map[string]interface{}
-                // (in tal caso costruiamo fValMap), altrimenti passiamo l’elem così com’è
-                switch elemTyped := elem.(type) {
-                case map[string]interface{}:
-                    // oggetto => usiamo la logica classica
-                    fValMap := map[string]interface{}{theChildName: elemTyped}
-                    subXML, err := buildXMLForField(fValMap, theChild, indentLevel+1)
-                    if err != nil { return "", err }
-                    sb.WriteString(subXML)
+	case []string:
+		sb.WriteString(indentString(indentLevel))
+		sb.WriteString("<" + tagName + ">\n")
+		for _, s := range actual {
+			sb.WriteString(indentString(indentLevel+1))
+			sb.WriteString("<item>" + s + "</item>\n")
+		}
+		sb.WriteString(indentString(indentLevel))
+		sb.WriteString("</" + tagName + ">\n")
+		return sb.String(), nil
 
-                default:
-                    // valore scalare => passiamo direttamente
-                    subXML, err := buildXMLForField(elemTyped, theChild, indentLevel+1)
-                    if err != nil { return "", err }
-                    sb.WriteString(subXML)
-                }
+	default:
+		rv := reflect.ValueOf(val)
+		if rv.Kind() == reflect.Slice {
+			sb.WriteString(indentString(indentLevel))
+			sb.WriteString("<" + tagName + ">\n")
 
-            } else if len(mapping.Children) > 1 {
-                // Caso più complesso: se ci sono piú children,
-                // magari gli elem dovrebbero essere mappe con piú campi
-                // ... la logica esistente ...
-                for childField, childMap := range mapping.Children {
-                    fValMap := map[string]interface{}{childField: elem}
-                    subXML, err := buildXMLForField(fValMap, childMap, indentLevel+1)
-                    if err != nil { return "", err }
-                    sb.WriteString(subXML)
-                }
+			for i := 0; i < rv.Len(); i++ {
+				elem := rv.Index(i).Interface()
+				if mapping.Children != nil {
+					for _, childMap := range mapping.Children {
+						subXML, err := buildXMLForField(elem, childMap, indentLevel+1)
+						if err != nil {
+							return "", err
+						}
+						sb.WriteString(subXML)
+					}
+				} else {
+					sb.WriteString(indentString(indentLevel+1))
+					sb.WriteString("<item>" + fmt.Sprintf("%v", elem) + "</item>\n")
+				}
+			}
 
-            } else {
-                // Se non ci sono children, stampiamo <tagName>valore</tagName> come fallback
-                sb.WriteString(indentString(indentLevel+1))
-                sb.WriteString("<" + tagName + ">")
-                sb.WriteString(fmt.Sprintf("%v", elem))
-                sb.WriteString("</" + tagName + ">\n")
-            }
-        }
-
-        sb.WriteString(indentString(indentLevel))
-        sb.WriteString("</" + tagName + ">\n")
-        return sb.String(), nil
-
-
-    // ---- D) map[string]interface{}
-    case map[string]interface{}:
-        // --- PROVA A CONVERTIRE A map[string]string? ---
-        // (1) se la mappa ha TUTTI valori di tipo string,
-        // (2) e se ci aspettiamo di dover usare Attributi (o c'è un solo child che ha AttrName, ecc.),
-        // allora deviamo verso la logica "map[string]string".
-
-        if allStrings(actual) && shouldConvertToMapStringString(mapping) {
-            // costruiamo una map[string]string
-            conv := make(map[string]string)
-            for k, rawVal := range actual {
-                conv[k] = rawVal.(string) // safe: allStrings() ha già verificato
-            }
-            // e richiamiamo buildXMLForField sul “conv”
-            return buildXMLForField(conv, mapping, indentLevel)
-        }
-
-        // --- Se non rientra nei criteri di "mappa di sole stringhe", prosegui con D) standard ---
-        sb.WriteString(indentString(indentLevel))
-        sb.WriteString("<" + tagName + ">\n")
-        for childName, childMap := range mapping.Children {
-            childVal := extractFieldValue(actual, childName)
-            if childVal == notFound {
-                continue
-            }
-            subXML, err := buildXMLForField(childVal, childMap, indentLevel+1)
-            if err != nil {
-                return "", err
-            }
-            sb.WriteString(subXML)
-        }
-        sb.WriteString(indentString(indentLevel))
-        sb.WriteString("</" + tagName + ">\n")
-        return sb.String(), nil
-
-
-    // ---- E) map[string]string (per officialName, mottos, ecc.)
-    case map[string]string:
-        sb.WriteString(indentString(indentLevel))
-        sb.WriteString("<" + tagName + ">\n")
-        if len(mapping.Children) == 1 {
-            var soleChild Structs.XmlFieldMapping
-            for _, c := range mapping.Children {
-                soleChild = c
-                break
-            }
-            childTag := soleChild.TagName
-            if childTag == "" {
-                childTag = soleChild.Field
-            }
-            attr := soleChild.AttrName
-
-            for k, v := range actual {
-                sb.WriteString(indentString(indentLevel+1))
-                sb.WriteString("<" + childTag)
-                if attr != "" {
-                    sb.WriteString(" " + attr + "=\"" + k + "\"")
-                }
-                sb.WriteString(">")
-                if soleChild.CDATA && v != "" {
-                    sb.WriteString("<![CDATA[")
-                    sb.WriteString(v)
-                    sb.WriteString("]]>")
-                } else {
-                    sb.WriteString(v)
-                }
-                sb.WriteString("</" + childTag + ">\n")
-            }
-        } else {
-            // fallback generico
-            for k, v := range actual {
-                sb.WriteString(indentString(indentLevel+1))
-                sb.WriteString("<child key=\"" + k + "\">")
-                sb.WriteString(v)
-                sb.WriteString("</child>\n")
-            }
-        }
-        sb.WriteString(indentString(indentLevel))
-        sb.WriteString("</" + tagName + ">\n")
-        return sb.String(), nil
-
-    // ---- F) slice di string
-    case []string:
-        sb.WriteString(indentString(indentLevel))
-        sb.WriteString("<" + tagName + ">\n")
-        for _, s := range actual {
-            sb.WriteString(indentString(indentLevel+1))
-            sb.WriteString("<item>")
-            sb.WriteString(s)
-            sb.WriteString("</item>\n")
-        }
-        sb.WriteString(indentString(indentLevel))
-        sb.WriteString("</" + tagName + ">\n")
-        return sb.String(), nil
-
-    default:
-        // Tipo sconosciuto
-        sb.WriteString(indentString(indentLevel))
-        sb.WriteString("<" + tagName + ">UNKNOWN_TYPE</" + tagName + ">\n")
-        return sb.String(), nil
-    }
+			sb.WriteString(indentString(indentLevel))
+			sb.WriteString("</" + tagName + ">\n")
+			return sb.String(), nil
+		}
+		sb.WriteString(indentString(indentLevel))
+		sb.WriteString("<" + tagName + ">UNKNOWN_TYPE</" + tagName + ">\n")
+		return sb.String(), nil
+	}
 }
 
 

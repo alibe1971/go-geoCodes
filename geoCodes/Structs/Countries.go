@@ -19,6 +19,7 @@ type Country struct {
     Currencies      CcCurrencies            `json:"currencies" yaml:"currencies" xml:"currencies"`
     DialCodes       DialCodes               `json:"dialCodes" yaml:"dialCodes" xml:"dialCodes"`
     CcTld           *string                 `json:"ccTld" yaml:"ccTld" xml:"ccTld"`
+    CcIdn           []CcIdn                 `json:"ccIdn" yaml:"ccIdn" xml:"ccIdn>idn"`
     TimeZones       []string                `json:"timeZones" yaml:"timeZones" xml:"timeZones>tz"`
     Languages       []string                `json:"languages" yaml:"languages" xml:"languages>lang"`
     LocalesIcu      []string                `json:"localesIcu" yaml:"localesIcu" xml:"localesIcu>locale"`
@@ -50,6 +51,13 @@ type DialCodes struct {
 
 type OtherAppsIds struct {
 	GeoNamesOrg *int64 `json:"geoNamesOrg" yaml:"geoNamesOrg" xml:"geoNamesOrg"`
+}
+
+type CcIdn struct {
+    Unicode       string         `json:"unicode" yaml:"unicode" xml:"unicode"`
+    Punycode      string         `json:"punycode" yaml:"punycode" xml:"punycode"`
+    Language      string         `json:"language" yaml:"language" xml:"language"`
+    RegionsOfUse  []string       `json:"regionsOfUse" yaml:"regionsOfUse" xml:"regionsOfUse>region"`
 }
 
 var CountrySettings = SettingsType {
@@ -84,6 +92,7 @@ var CountrySettings = SettingsType {
         "DialCodes.Main",
         "DialCodes.Exceptions",
         "CcTld",
+        "CcIdn",
         "TimeZones",
         "Languages",
         "LocalesIcu",
@@ -259,6 +268,33 @@ var MapBuildXmlCountry = map[string]XmlFieldMapping{
     },
     "ccTld": {
         TagName: "ccTld",
+    },
+    "ccIdn": {
+        TagName: "ccIdn",
+        Children: map[string]XmlFieldMapping{
+            "": {
+                TagName: "idn",
+                Children: map[string]XmlFieldMapping{
+                    "unicode": {
+                        TagName: "unicode",
+                    },
+                    "punycode": {
+                        TagName: "punycode",
+                    },
+                    "language": {
+                        TagName: "language",
+                    },
+                    "regionsOfUse": {
+                        TagName: "regionsOfUse",
+                        Children: map[string]XmlFieldMapping{
+                            "region": {
+                                TagName: "region",
+                            },
+                        },
+                    },
+                },
+            },
+        },
     },
     "timeZones": {
         TagName: "timeZones",
